@@ -1,7 +1,7 @@
 .PHONY: watch
 watch:
 	@cargo check || :
-	@ls **/*.rs | entr cargo check
+	@ls ./src/**/*.rs | entr cargo check
 
 .PHONY: watch/test
 watch/test:

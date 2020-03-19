@@ -1,5 +1,2 @@
 
-mod domain;
-mod space;
-mod propagator;
-mod variable;
+pub mod propagator_networks;

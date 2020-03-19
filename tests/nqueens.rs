@@ -13,7 +13,7 @@ fn test_nqueens() {
 
     scheduler.add_many([
         Equal::new(x, y),
-        Equal::new(x, z),
+        EqualToValue::new(x, z),
     ]);
 
     let result = scheduler.run(LIMIT);

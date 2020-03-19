@@ -6,4 +6,4 @@ watch:
 .PHONY: watch/test
 watch/test:
 	@cargo test || :
-	@ls **/*.rs | entr cargo test
+	@ls ./src/**/*.rs ./tests/**/*.rs | entr cargo test -- --nocapture

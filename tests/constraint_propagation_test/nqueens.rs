@@ -1,3 +1,4 @@
+/*
 use libpropagators::kernel::scheduler::{Scheduler};
 use libpropagators::propagators::{};
 
@@ -31,3 +32,4 @@ fn test_nqueens() {
         }
     }
 }
+*/

@@ -11,37 +11,38 @@ pub struct Network<A> {
     cells: Vec<Cell<A>>,
     propagators: Vec<Propagator<A>>,
 
-    prop_to_cells: HashMap<propagator::ID, Vec<cell::ID>>,
-    cell_to_props: HashMap<cell::ID, Vec<propagator::ID>>,
+    edges: HashMap<propagator::ID, Vec<cell::ID>>,
+    //cell_to_props: HashMap<cell::ID, Vec<propagator::ID>>,
 
     alerted: Vec<propagator::ID>
 }
 
 impl<A> Network<A>
-    where A: Debug + Merge + Clone
+    where A: Debug + Merge + Clone + Copy
 {
     pub fn new() -> Self {
         Self {
             cells: Vec::new(),
             propagators: Vec::new(),
 
-            prop_to_cells: HashMap::new(),
-            cell_to_props: HashMap::new(),
+            edges: HashMap::new(),
+            //cell_to_props: HashMap::new(),
 
             alerted: Vec::new()
         }
     }
-    pub fn add_cell(&mut self, cell: Cell<A>) -> cell::ID {
-        self.cells.push(cell);
+    pub fn new_cell(&mut self) -> cell::ID {
+        self.cells.push(Cell::new());
         self.cells.len() - 1
     }
 
-    pub fn add_propagator(&mut self, propagator: Propagator<A>) -> propagator::ID {
+    pub fn new_propagator(&mut self, propagator: Propagator<A>, cell_ids: &[cell::ID]) -> propagator::ID {
         self.propagators.push(propagator);
 
         let id = self.propagators.len() - 1;
 
         self.alerted.push(id);
+        self.edges.insert(id, cell_ids.into());
 
         id
     }
@@ -50,44 +51,45 @@ impl<A> Network<A>
         &self.cells[id]
     }
 
-    pub fn write_cell(&mut self, id: cell::ID, a: Cell<A>) {
+    pub fn write_cell(&mut self, id: cell::ID, value: A) {
         let cell = &self.cells[id];
-        self.cells[id] = cell.merge(&a);
+        self.cells[id] = cell.merge(&Cell::wrap(value));
     }
 
-    pub fn connect(&mut self, prop_id: propagator::ID, cell_id: cell::ID) {
-        self.alerted.push(prop_id);
-
-        match self.prop_to_cells.get_mut(&prop_id) {
-            Some(cells) => {
-                cells.push(cell_id);
-            },
-            None => {
-                self.prop_to_cells.insert(prop_id, vec![cell_id]);
-            }
-        }
-
-        match self.cell_to_props.get_mut(&cell_id) {
-            Some(props) => {
-                props.push(prop_id);
-            },
-            None => {
-                self.cell_to_props.insert(cell_id, vec![prop_id]);
-            }
-        }
-
-    }
-/*
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
             let mut writes : Vec<(cell::ID, A)>= Vec::new();
-            let alerted : Vec<propagator::Id> = Vec::new();
 
             for &prop_id in self.alerted.iter() {
-                let propagator = self.propagators[prop_id];
-                let cells = self.prop_to_cells.get(prop_id);
+                let propagator = &self.propagators[prop_id];
+                let cell_ids = self.edges.get(&prop_id).unwrap();
+                let input_cells : Vec<&Cell<A>> = cell_ids
+                    .iter()
+                    .take(cell_ids.len() - 1)
+                    .map(|&cell_id| { &self.cells[cell_id] })
+                    .collect();
+
+                let &output_id = cell_ids.last().unwrap();
+                let is_ready = input_cells.iter().all(|cell| !cell.is_empty());
+
+                println!("is ready {}", is_ready);
+                if is_ready {
+                    let values : Vec<A> = input_cells
+                        .iter()
+                        .map(|&cell| cell.unwrap())
+                        .collect();
+
+                    let value = propagator.run(&values);
+
+                    writes.push((output_id, value));
+                }
+            }
+
+            self.alerted.clear();
+
+            for (output_id, output) in writes.iter() {
+                self.write_cell(*output_id, output.clone());
             }
         }
     }
-    */
 }

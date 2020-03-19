@@ -6,7 +6,7 @@ pub trait Merge {
     fn merge(&self, other: &Self) -> Self;
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum Cell<A> {
     Nothing,
     Value(A),

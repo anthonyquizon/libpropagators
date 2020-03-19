@@ -17,7 +17,7 @@ pub struct Network<A> {
 }
 
 impl<A> Network<A>
-    where A: Debug + Merge + Clone + Copy
+    where A: Debug + Merge + Clone + Copy + PartialEq
 {
     pub fn new() -> Self {
         Self {
@@ -51,7 +51,11 @@ impl<A> Network<A>
 
     pub fn write_cell(&mut self, id: cell::ID, value: A) {
         let cell = &self.cells[id];
-        self.cells[id] = cell.merge(&Cell::wrap(value));
+        let merged_cell = cell.merge(&Cell::wrap(value));
+
+        merged_cell.assert_ok();
+
+        self.cells[id] = merged_cell;
     }
 
     pub fn run(&mut self) {

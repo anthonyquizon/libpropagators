@@ -17,32 +17,32 @@ fn test_network_add() {
 
     network.run();
 
-    let expected = Cell::wrap(3);
+    let expected = Some(3);
     let actual = network.read_cell(c);
     
-    assert_eq!(&expected, actual);
+    assert_eq!(expected, actual);
 }
 
-//#[test]
-//fn test_network_constraint_add() {
-    //let mut network:Network<usize> = Network::new();
+#[test]
+fn test_network_constraint_add() {
+    let mut network:Network<usize> = Network::new();
 
-    //let a = network.new_cell();
-    //let b = network.new_cell();
-    //let c = network.new_cell();
+    let a = network.new_cell();
+    let b = network.new_cell();
+    let c = network.new_cell();
 
-    //network.write_cell(b, 2);
-    //network.write_cell(c, 3);
+    network.write_cell(b, 2);
+    network.write_cell(c, 3);
 
-    //network.constraint_add(a, b, c);
+    network.constraint_add(a, b, c);
 
-    //network.run();
+    network.run();
 
-    //let expected = Cell::wrap(&1);
-    //let actual = network.read_cell(a);
+    let expected = Some(1);
+    let actual = network.read_cell(a);
     
-    //assert_eq!(expected, actual);
-//}
+    assert_eq!(expected, actual);
+}
 /*
 #[test]
 fn test_network_expr() {

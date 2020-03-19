@@ -29,6 +29,13 @@ impl<A: Clone + Merge> Cell<A> {
         Self::Value(value.clone())
     }
 
+    pub fn to_option(&self) -> Option<A> {
+        match self {
+            Self::Value(value) => Some(value.clone()),
+            _ => None
+        }
+    }
+
     pub fn unwrap(&self) -> A {
         match self {
             Self::Value(value) => value.clone(),

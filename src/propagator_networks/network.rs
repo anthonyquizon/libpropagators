@@ -12,7 +12,6 @@ pub struct Network<A> {
     propagators: Vec<Propagator<A>>,
 
     edges: HashMap<propagator::ID, Vec<cell::ID>>,
-    //cell_to_props: HashMap<cell::ID, Vec<propagator::ID>>,
 
     alerted: Vec<propagator::ID>
 }
@@ -26,7 +25,6 @@ impl<A> Network<A>
             propagators: Vec::new(),
 
             edges: HashMap::new(),
-            //cell_to_props: HashMap::new(),
 
             alerted: Vec::new()
         }
@@ -47,8 +45,8 @@ impl<A> Network<A>
         id
     }
 
-    pub fn read_cell(&self, id: cell::ID) -> &Cell<A> {
-        &self.cells[id]
+    pub fn read_cell(&self, id: cell::ID) -> Option<A> {
+        self.cells[id].to_option()
     }
 
     pub fn write_cell(&mut self, id: cell::ID, value: A) {
@@ -72,7 +70,6 @@ impl<A> Network<A>
                 let &output_id = cell_ids.last().unwrap();
                 let is_ready = input_cells.iter().all(|cell| !cell.is_empty());
 
-                println!("is ready {}", is_ready);
                 if is_ready {
                     let values : Vec<A> = input_cells
                         .iter()

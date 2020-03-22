@@ -5,8 +5,8 @@ impl Merge for usize {
         self == value
     }
 
-    fn merge(&self, value: &Self) -> Self {
-        value.clone()
+    fn merge(&self, other: &Self) -> Self {
+        other.clone()
     }
 }
 

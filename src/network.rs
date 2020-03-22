@@ -1,7 +1,7 @@
-use crate::propagator_networks::cell;
-use crate::propagator_networks::cell::{Cell, Merge};
-use crate::propagator_networks::propagator;
-use crate::propagator_networks::propagator::{Propagator};
+use crate::cell;
+use crate::cell::{Cell, Merge};
+use crate::propagator;
+use crate::propagator::{Propagator};
 
 use core::fmt::Debug;
 //use serde::{Deserialize, Serialize};
@@ -12,6 +12,8 @@ pub struct Network<A> {
     propagators: Vec<Propagator<A>>,
 
     edges: HashMap<propagator::ID, Vec<cell::ID>>,
+
+    //cdcl - store no good sets
 
     alerted: Vec<propagator::ID>
 }

@@ -1,6 +1,6 @@
 
-use libpropagators::propagator_networks::network::{ Network };
-use libpropagators::propagator_networks::cell::{ Cell };
+use propagators::network::{ Network };
+use propagators::cell::{ Cell };
 
 #[test]
 fn test_network_add() {

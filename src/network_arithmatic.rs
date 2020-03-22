@@ -1,7 +1,7 @@
-use crate::propagator_networks::propagator::{Propagator};
-use crate::propagator_networks::cell;
-use crate::propagator_networks::cell::{Merge};
-use crate::propagator_networks::network::{Network};
+use crate::propagator::{Propagator};
+use crate::cell;
+use crate::cell::{Merge};
+use crate::network::{Network};
 use std::ops::{ Add, Sub };
 use core::fmt::Debug;
 

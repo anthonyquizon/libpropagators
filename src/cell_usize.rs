@@ -1,4 +1,4 @@
-use crate::propagator_networks::cell::{ Merge };
+use crate::cell::{ Merge };
 
 impl Merge for usize {
     fn is_valid(&self, value: &Self) -> bool {

@@ -1,4 +1,4 @@
-use crate::propagator_networks::cell::{ Merge };
+use crate::cell::{ Merge };
 
 
 pub type Premise = usize;

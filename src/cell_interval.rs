@@ -2,14 +2,14 @@ use crate::cell::{ Merge };
 
 use std::cmp;
 
-// TODO make generic?
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct Interval {
     min: i32,
     max: i32
 }
 
 impl Merge for Interval {
-    fn is_valid(&self, other: &Self) -> bool { true }
+    fn is_valid(&self, _other: &Self) -> bool { true }
 
     fn merge(&self, other: &Self) -> Self {
         let min = cmp::max(self.min, other.min);

@@ -13,7 +13,7 @@ pub enum Cell<A> {
     Contradiction
 }
 
-impl<A: Clone + Merge + PartialEq> Cell<A> {
+impl<A: Clone + Merge> Cell<A> {
     pub fn new() -> Self {
         Self::Nothing
     }

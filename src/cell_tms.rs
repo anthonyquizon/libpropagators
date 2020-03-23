@@ -2,6 +2,7 @@ use std::rc::{Rc};
 use std::hash::{Hash, Hasher};
 use crate::cell::{ Merge };
 use crate::tms::{ TruthManagementSystem, Premise };
+use core::fmt::Debug;
 
 use std::collections::HashSet;
 
@@ -13,7 +14,7 @@ struct Instance<A> {
 
 #[derive(Clone)]
 pub struct TruthManagementStore<A> {
-    system: Rc<TruthManagementSystem<A>>,
+    system: Rc<TruthManagementSystem<TruthManagementStore<A>>>,
     instances: HashSet<Instance<A>>,
 }
 
@@ -50,10 +51,13 @@ impl<A: Merge + PartialEq> Instance<A> {
 }
 
 impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
-    pub fn new(tms: &Rc<TruthManagementSystem<A>>) -> Self {
+    pub fn new(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, initial: A) -> Self {
+        let mut instances = HashSet::new();
+        instances.insert(Instance::new(initial));
+
         Self {
             system: Rc::clone(tms),
-            instances: HashSet::new(),
+            instances
         }
     }
 
@@ -89,12 +93,13 @@ impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
     }
 }
 
+impl<A: Merge + PartialEq + Clone> Merge for TruthManagementStore<A> {
+    fn is_valid(&self, _other: &Self) -> bool { true }
 
-/*
-impl<A: Merge + PartialEq> Merge for TruthManagementSystem<A> {
     fn merge(&self, other: &Self) -> Self {
-        // for each instance
-        Self::new()
+        Self {
+            system: Rc::clone(&self.system),
+            instances: self.instances.clone()
+        }
     }
 }
-*/

@@ -19,7 +19,7 @@ pub struct Network<A> {
 }
 
 impl<A> Network<A>
-    where A: Debug + Merge + Clone + Copy + PartialEq
+    where A: Merge + Clone 
 {
     pub fn new() -> Self {
         Self {

@@ -2,7 +2,7 @@
 pub type ID = usize;
 
 pub trait Merge {
-    fn is_valid(&self, other: &Self) -> bool;
+    fn is_valid(&self, _other: &Self) -> bool { true }
     fn merge(&self, other: &Self) -> Self;
 }
 

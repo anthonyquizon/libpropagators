@@ -1,23 +1,11 @@
 use crate::cell::{ Merge };
 
-
-pub type Premise = usize;
-use std::collections::HashSet;
 use std::cmp;
-
-// TODO Move to merge instances
-//pub struct Instance {
-//}
 
 // TODO make generic?
 pub struct Interval {
     min: i32,
     max: i32
-}
-
-pub struct IntervalDeps {
-    intervals: Interval,
-    dependencies: HashSet<Premise>
 }
 
 impl Merge for Interval {
@@ -43,12 +31,3 @@ impl Interval {
     }
 }
 
-//impl Merge for Interval {
-    //fn is_valid(&self, value: &Self) -> bool {
-        //self == value
-    //}
-
-    //fn merge(&self, other: &Self) -> Self {
-        //value.clone()
-    //}
-//}

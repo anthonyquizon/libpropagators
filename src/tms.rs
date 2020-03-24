@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::rc::{Rc};
 use std::cell::RefCell;
 
-pub type Premise = usize;
+pub type Premise = String;
 
 #[derive(Clone)]
 pub struct TruthManagementSystem<A> {

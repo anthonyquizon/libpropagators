@@ -5,17 +5,22 @@ pub type ID = usize;
 
 #[derive(Clone)]
 pub enum Propagator<A> {
-    Unary(fn(&A) -> A),
-    Binary(fn(&A, &A) -> A),
-    Ternary(fn(&A, &A, &A) -> A),
+    Unary(fn(A) -> A),
+    Binary(fn(A, A) -> A),
+    Ternary(fn(A, A, A) -> A),
+
+    //Unary(Box<dyn FnMut(&A) -> A>),
+    //Binary(Box<dyn FnMut(&A, &A) -> A>),
+    //Ternary(Box<dyn FnMut(&A, &A, &A) -> A>),
 }
 
 impl<A: Merge + Clone> Propagator<A> {
+    // FIXME: remove clones
     pub fn run(&self, values: &[A]) -> A {
         match &self {
-            Self::Unary(proc) => proc(&values[0]),
-            Self::Binary(proc) => proc(&values[0], &values[1]),
-            Self::Ternary(proc) => proc(&values[0], &values[1], &values[2]),
+            Self::Unary(proc) => proc(values[0].clone()),
+            Self::Binary(proc) => proc(values[0].clone(), values[1].clone()),
+            Self::Ternary(proc) => proc(values[0].clone(), values[1].clone(), values[2].clone()),
         }
     }
 }

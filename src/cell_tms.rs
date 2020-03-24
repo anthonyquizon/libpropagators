@@ -1,81 +1,11 @@
 use std::rc::{Rc};
 use std::hash::{Hash, Hasher};
 use crate::cell::{ Merge };
+use crate::cell_supported::{ Supported };
 use crate::tms::{ TruthManagementSystem, Premise };
-use core::fmt::Debug;
 
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-struct Supported<A> {
-    value: A,
-    premises: HashSet<Premise>
-}
-
-
-impl<A: Hash> Hash for Supported<A> {
-    fn hash<H>(&self, state: &mut H) where H: Hasher {
-        let mut vec_premises: Vec<&Premise> = self.premises.iter().collect();
-        vec_premises.sort();
-
-        self.value.hash(state);
-
-        for dependency in vec_premises.iter() {
-            dependency.hash(state);
-        }
-    }
-}
-
-impl<A: Merge + PartialEq> Supported<A> {
-    pub fn new(value: A) -> Self {
-        Self {
-            value,
-            premises: HashSet::new()
-        }
-    }
-
-    pub fn implies(&self, other: &Self) -> bool {
-        let value = self.value.merge(&other.value);
-
-        self.value == value
-    }
-
-    pub fn subsumes(&self, other: &Self) -> bool {
-        self.implies(other) && self.premises.is_subset(&other.premises)
-    }
-}
-
-impl<A: Merge + Clone + PartialEq> Merge for Supported<A> {
-    fn is_valid(&self, _other: &Self) -> bool { true }
-
-    fn merge(&self, other: &Self) -> Self {
-        let merged_value = self.value.merge(&other.value);
-
-        if merged_value == self.value {
-            if other.value.merge(&merged_value) == other.value {
-                if self.premises != other.premises && 
-                    other.premises.is_subset(&self.premises) 
-                {
-                    (*other).clone()
-                } else {
-                    (*self).clone()
-                }
-            }
-            else {
-                (*self).clone()
-            }
-        }
-        else if merged_value == other.value {
-            (*other).clone()
-        }
-        else {
-            Self {
-                value: merged_value,
-                premises: self.premises.union(&other.premises).cloned().collect()
-            }
-        }
-    }
-}
 
 #[derive(Clone)]
 pub struct TruthManagementStore<A> {
@@ -90,9 +20,13 @@ impl<A: PartialEq + Eq + Hash> PartialEq for TruthManagementStore<A> {
 }
 
 impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
-    pub fn new(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, initial: A) -> Self {
+    pub fn new(
+        tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, 
+        value: A,
+        premises: &[Premise]
+    ) -> Self {
         let mut supports = HashSet::new();
-        supports.insert(Supported::new(initial));
+        supports.insert(Supported::new(value, premises));
 
         Self {
             system: Rc::clone(tms),
@@ -144,8 +78,8 @@ impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
 
     fn strongest_consequence(&self) -> Supported<A> {
         let relevant_supports : Vec<&Supported<A>> = self.supports.iter().filter(|instance| {
-            instance.premises.iter().all(|&premise| {
-                self.system.premise_is_valid(premise)
+            instance.get_premises().iter().all(|premise| {
+                self.system.premise_is_valid(premise.clone())
             })
         }).collect();
 
@@ -169,7 +103,8 @@ impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
             self.supports = better_tms.supports;
         }
 
-        answer.value
+        // FIXME
+        (*answer.get_value()).clone()
     }
 }
 

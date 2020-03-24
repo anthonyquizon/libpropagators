@@ -31,7 +31,7 @@ impl<A> Network<A>
             alerted: HashSet::new()
         }
     }
-    pub fn new_cell(&mut self) -> cell::ID {
+    pub fn make_cell(&mut self) -> cell::ID {
         self.cells.push(Cell::new());
         self.cells.len() - 1
     }
@@ -42,7 +42,7 @@ impl<A> Network<A>
         }
     }
 
-    pub fn new_propagator(&mut self, propagator: Propagator<A>, cell_ids: &[cell::ID]) -> propagator::ID {
+    pub fn make_propagator(&mut self, propagator: Propagator<A>, cell_ids: &[cell::ID]) -> propagator::ID {
         self.propagators.push(propagator);
 
         let id = self.propagators.len() - 1;

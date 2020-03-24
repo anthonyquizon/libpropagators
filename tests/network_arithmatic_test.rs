@@ -6,9 +6,9 @@ use propagators::cell::{ Cell };
 fn test_network_add() {
     let mut network : Network<usize> = Network::new();
 
-    let a = network.new_cell();
-    let b = network.new_cell();
-    let c = network.new_cell();
+    let a = network.make_cell();
+    let b = network.make_cell();
+    let c = network.make_cell();
 
     network.write_cell(a, 1);
     network.write_cell(b, 2);
@@ -27,9 +27,9 @@ fn test_network_add() {
 fn test_network_constraint_add() {
     let mut network:Network<usize> = Network::new();
 
-    let a = network.new_cell();
-    let b = network.new_cell();
-    let c = network.new_cell();
+    let a = network.make_cell();
+    let b = network.make_cell();
+    let c = network.make_cell();
 
     network.write_cell(b, 2);
     network.write_cell(c, 3);
@@ -48,8 +48,8 @@ fn test_network_constraint_add() {
 fn test_network_expr() {
     let mut network:Network<usize> = Network::new();
 
-    let a = network.new_cell();
-    let b = network.new_cell();
+    let a = network.make_cell();
+    let b = network.make_cell();
     
     network.write_cell(a, 3);
     network.write_cell(b, 2);
@@ -68,9 +68,9 @@ fn test_network_expr() {
 fn test_network_switch_control_on() {
     let mut network:Network<usize> = Network::new();
 
-    let control = network.new_cell();
-    let input = network.new_cell();
-    let output = network.new_cell();
+    let control = network.make_cell();
+    let input = network.make_cell();
+    let output = network.make_cell();
     
     network.write_cell(control, 3);
     network.write_cell(input, 2);
@@ -90,9 +90,9 @@ fn test_network_switch_control_on() {
 fn test_network_switch_control_off() {
     let mut network:Network<usize> = Network::new();
 
-    let control = network.new_cell();
-    let input = network.new_cell();
-    let output = network.new_cell();
+    let control = network.make_cell();
+    let input = network.make_cell();
+    let output = network.make_cell();
     
     network.write_cell(control, 0);
     network.write_cell(input, 2);

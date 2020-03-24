@@ -3,9 +3,9 @@ use crate::cell::{Cell, Merge};
 use crate::propagator;
 use crate::propagator::{Propagator};
 
-use core::fmt::Debug;
 //use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 pub struct Network<A> {
     cells: Vec<Cell<A>>,
@@ -15,7 +15,7 @@ pub struct Network<A> {
 
     //cdcl - store no good sets
 
-    alerted: Vec<propagator::ID>
+    alerted: HashSet<propagator::ID>
 }
 
 impl<A> Network<A>
@@ -28,7 +28,7 @@ impl<A> Network<A>
 
             edges: HashMap::new(),
 
-            alerted: Vec::new()
+            alerted: HashSet::new()
         }
     }
     pub fn new_cell(&mut self) -> cell::ID {
@@ -36,12 +36,18 @@ impl<A> Network<A>
         self.cells.len() - 1
     }
 
+    pub fn alert_all_propagators(&mut self) {
+        for id in 0..self.propagators.len() - 1 {
+            self.alerted.insert(id);
+        }
+    }
+
     pub fn new_propagator(&mut self, propagator: Propagator<A>, cell_ids: &[cell::ID]) -> propagator::ID {
         self.propagators.push(propagator);
 
         let id = self.propagators.len() - 1;
 
-        self.alerted.push(id);
+        self.alerted.insert(id);
         self.edges.insert(id, cell_ids.into());
 
         id

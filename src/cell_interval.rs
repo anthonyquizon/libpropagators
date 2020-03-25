@@ -1,6 +1,5 @@
 use crate::cell::{ Merge };
 
-use std::cmp;
 use std::ops::{ Add, Sub, Mul, Div };
 
 macro_rules! max {
@@ -27,10 +26,10 @@ macro_rules! min {
     }}
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Interval {
-    min: i32,
-    max: i32
+    min: f64,
+    max: f64
 }
 
 impl Add for Interval {
@@ -84,13 +83,14 @@ impl Div for Interval {
     type Output = Self;
 
     fn div(self, other: Self) -> Self {
-        if other.min <= 0 && 0 <= other.max && other.min <= other.max {
+        //TODO by epsilon
+        if other.min < 0. && 0. < other.max && other.min < other.max {
             panic!("cannot divide by interval spanning 0");
         }
 
         let other_inverse = Self { 
-            min: 1 / other.max,  
-            max: 1 / other.min
+            min: 1. / other.max,  
+            max: 1. / other.min
         };
 
         self * other_inverse
@@ -102,8 +102,8 @@ impl Merge for Interval {
     fn is_valid(&self, _other: &Self) -> bool { true }
 
     fn merge(&self, other: &Self) -> Self {
-        let min = cmp::max(self.min, other.min);
-        let max = cmp::min(self.max, other.max);
+        let min = max!(self.min, other.min);
+        let max = min!(self.max, other.max);
 
         Self {
             min,
@@ -113,7 +113,7 @@ impl Merge for Interval {
 }
 
 impl Interval {
-    pub fn new(min: i32, max: i32) -> Self {
+    pub fn new(min: f64, max: f64) -> Self {
         Self {
             min,
             max

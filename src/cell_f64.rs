@@ -9,3 +9,4 @@ impl Merge for f64 {
         other.clone()
     }
 }
+

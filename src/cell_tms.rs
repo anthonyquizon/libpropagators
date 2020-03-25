@@ -4,73 +4,70 @@ use crate::cell::{ Merge };
 use crate::cell_supported::{ Supported };
 use crate::tms::{ TruthManagementSystem, Premise };
 
-use std::collections::HashSet;
-
 
 #[derive(Clone)]
 pub struct TruthManagementStore<A> {
     system: Rc<TruthManagementSystem<TruthManagementStore<A>>>,
-    supports: HashSet<Supported<A>>,
+    supports: Vec<Supported<A>>,
 }
 
-impl<A: PartialEq + Eq + Hash> PartialEq for TruthManagementStore<A> {
+impl<A: PartialEq + Eq> PartialEq for TruthManagementStore<A> {
     fn eq(&self, other: &Self) -> bool {
         self.supports == other.supports
     }
 }
 
-impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
+impl<A: Clone + Merge + PartialEq + Eq> TruthManagementStore<A> {
     pub fn new(
         tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, 
         value: A,
         premises: &[Premise]
     ) -> Self {
-        let mut supports = HashSet::new();
-        supports.insert(Supported::new(value, premises));
+        Self {
+            system: Rc::clone(tms),
+            supports: vec![Supported::new(value, premises)]
+        }
+    }
 
+    fn from_supports(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, supports: Vec<Supported<A>>) -> Self {
         Self {
             system: Rc::clone(tms),
             supports
         }
     }
 
-    fn from_supports(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, supports: HashSet<Supported<A>>) -> Self {
-        Self {
-            system: Rc::clone(tms),
-            supports
-        }
-    }
-
-    /// Pg 54
-    fn assimilate_many(&self, other_supports: &HashSet<Supported<A>>) -> Self {
+    fn assimilate_many(&self, other_supports: &Vec<Supported<A>>) -> Self {
         let mut tms = self.clone();
 
-        for other_instance in other_supports.iter() {
-            tms = tms.assimilate(other_instance);
+        for other_supported in other_supports.iter() {
+            tms = tms.assimilate(other_supported);
         }
 
         tms
     }
 
-    fn assimilate(&self, other_instance: &Supported<A>) -> Self {
-        let mut supports : HashSet<Supported<A>> = HashSet::new();
+    fn assimilate(&self, other_supported: &Supported<A>) -> Self {
+        let mut supports : Vec<Supported<A>> = Vec::new();
 
-        let any_subsumes = self.supports.iter().any(|self_instance| {
-            self_instance.subsumes(other_instance)
+        let any_subsumes = self.supports.iter().any(|supported| {
+            supported.subsumes(&other_supported)
         });
 
         if !any_subsumes {
-            let subsumed : HashSet<Supported<A>> = self.supports.iter()
+            supports = self.supports.iter()
                 .cloned()
-                .filter(|self_instance| other_instance.subsumes(&self_instance))
+                .filter(|supported| !other_supported.subsumes(&supported))
                 .collect();
 
-            supports = supports
-                .difference(&subsumed)
+            // FIXME: remove cloned
+            let exists = supports
+                .iter()
                 .cloned()
-                .collect();
+                .all(|supported| supported == *other_supported);
 
-            supports.insert(other_instance.clone());
+            if !exists {
+                supports.push(other_supported.clone());
+            }
         }
 
         Self::from_supports(&self.system, supports)
@@ -78,7 +75,7 @@ impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
 
     fn strongest_consequence(&self) -> Supported<A> {
         let relevant_supports : Vec<&Supported<A>> = self.supports.iter().filter(|instance| {
-            instance.get_premises().iter().all(|premise| {
+            instance.premises().iter().all(|premise| {
                 self.system.premise_is_valid(premise.clone())
             })
         }).collect();
@@ -104,11 +101,11 @@ impl<A: Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
         }
 
         // FIXME
-        (*answer.get_value()).clone()
+        (*answer.value()).clone()
     }
 }
 
-impl<A: Clone + Hash + Merge + PartialEq + Eq> Merge for TruthManagementStore<A> {
+impl<A: Clone + Merge + PartialEq + Eq> Merge for TruthManagementStore<A> {
     fn is_valid(&self, _other: &Self) -> bool { true }
 
     fn merge(&self, other: &Self) -> Self {

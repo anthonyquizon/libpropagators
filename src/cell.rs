@@ -54,11 +54,13 @@ impl<A: Clone + Merge + PartialEq> Cell<A> {
             (Self::Nothing, _) => Event::Changed(value.clone()),
             (_, Self::Nothing) => Event::Unchanged,
             (Self::Content(a), Self::Content(b)) if a.is_valid(b) => {
-                if *a == *b {
+                let value = a.merge(b);
+
+                if *a == value {
                     Event::Unchanged
                 }
                 else {
-                    let cell = Self::Content(a.merge(b));
+                    let cell = Self::Content(value);
 
                     Event::Changed(cell)
                 }

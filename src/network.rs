@@ -75,6 +75,8 @@ impl<A> Network<A>
         let cell = &self.cells[id];
 
         match cell.merge(&Cell::wrap(value)) {
+            Event::Unchanged => {}
+            Event::Contradiction => { panic!("Contradiction!"); }
             Event::Changed(merged_cell) => {
                 match self.cell_neighbours.get(&id) {
                     Some(neighbours) => {
@@ -86,10 +88,6 @@ impl<A> Network<A>
                 };
 
                 self.cells[id] = merged_cell;
-            }
-            Event::Unchanged => {}
-            Event::Contradiction => {
-                panic!("Contradiction!");
             }
         }
 

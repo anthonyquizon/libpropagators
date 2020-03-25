@@ -12,7 +12,6 @@ pub struct Supported<A> {
     premises: HashSet<Premise>
 }
 
-
 impl<A: Hash> Hash for Supported<A> {
     fn hash<H>(&self, state: &mut H) where H: Hasher {
         let mut vec_premises: Vec<&Premise> = self.premises.iter().collect();
@@ -95,16 +94,20 @@ impl<A: Merge + PartialEq> Supported<A> {
         self.implies(other) && self.premises.is_subset(&other.premises)
     }
 
-    pub fn get_value(&self) -> &A {
+    pub fn value(&self) -> &A {
         &self.value
     }
 
-    pub fn get_premises(&self) -> &HashSet<Premise> {
+    pub fn premises(&self) -> &HashSet<Premise> {
         &self.premises
     }
 }
 
 impl<A: Merge + Clone + PartialEq> Merge for Supported<A> {
+    fn is_valid(&self, other: &Self) -> bool {
+        self.value.is_valid(&other.value)
+    }
+
     fn merge(&self, other: &Self) -> Self {
         let merged_value = self.value.merge(&other.value);
 

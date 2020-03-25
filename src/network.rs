@@ -1,5 +1,5 @@
 use crate::cell;
-use crate::cell::{Cell, Merge};
+use crate::cell::{Cell, Event, Merge};
 use crate::propagator;
 use crate::propagator::{Propagator};
 
@@ -11,26 +11,27 @@ pub struct Network<A> {
     cells: Vec<Cell<A>>,
     propagators: Vec<Propagator<A>>,
 
-    edges: HashMap<propagator::ID, Vec<cell::ID>>,
-
-    //cdcl - store no good sets
+    propagator_neighbours: HashMap<propagator::ID, Vec<cell::ID>>,
+    cell_neighbours: HashMap<cell::ID, Vec<propagator::ID>>,
 
     alerted: HashSet<propagator::ID>
 }
 
 impl<A> Network<A>
-    where A: Merge + Clone 
+    where A: Merge + Clone + PartialEq
 {
     pub fn new() -> Self {
         Self {
             cells: Vec::new(),
             propagators: Vec::new(),
 
-            edges: HashMap::new(),
+            propagator_neighbours: HashMap::new(),
+            cell_neighbours: HashMap::new(),
 
             alerted: HashSet::new()
         }
     }
+
     pub fn make_cell(&mut self) -> cell::ID {
         self.cells.push(Cell::new());
         self.cells.len() - 1
@@ -48,7 +49,20 @@ impl<A> Network<A>
         let id = self.propagators.len() - 1;
 
         self.alerted.insert(id);
-        self.edges.insert(id, cell_ids.into());
+        self.propagator_neighbours.insert(id, cell_ids.into());
+
+        for &cell_id in cell_ids {
+            match self.cell_neighbours.get_mut(&cell_id) {
+                Some(neighbours) => neighbours.push(id),
+                None => {
+                    let mut neighbours = Vec::new();
+
+                    neighbours.push(id);
+
+                    self.cell_neighbours.insert(cell_id, neighbours);
+                }
+            }
+        }
 
         id
     }
@@ -59,11 +73,30 @@ impl<A> Network<A>
 
     pub fn write_cell(&mut self, id: cell::ID, value: A) {
         let cell = &self.cells[id];
-        let merged_cell = cell.merge(&Cell::wrap(value));
 
-        merged_cell.assert_ok();
+        match cell.merge(&Cell::wrap(value)) {
+            Event::Changed(merged_cell) => {
+                match self.cell_neighbours.get(&id) {
+                    Some(neighbours) => {
+                        for &prop_id in neighbours.iter() {
+                            self.alerted.insert(prop_id);
+                        }
+                    }
+                    None => {}
+                };
 
-        self.cells[id] = merged_cell;
+                self.cells[id] = merged_cell;
+            }
+            Event::Unchanged => {}
+            Event::Contradiction => {
+                panic!("Contradiction!");
+            }
+        }
+
+    }
+
+    pub fn num_cells(&self) -> usize {
+        self.cells.len()
     }
 
     pub fn run(&mut self) {
@@ -72,7 +105,7 @@ impl<A> Network<A>
 
             for &prop_id in self.alerted.iter() {
                 let propagator = &self.propagators[prop_id];
-                let cell_ids = self.edges.get(&prop_id).unwrap();
+                let cell_ids = self.propagator_neighbours.get(&prop_id).unwrap();
                 let input_cells : Vec<&Cell<A>> = cell_ids
                     .iter()
                     .take(cell_ids.len() - 1)
@@ -80,7 +113,7 @@ impl<A> Network<A>
                     .collect();
 
                 let &output_id = cell_ids.last().unwrap();
-                let is_ready = input_cells.iter().all(|cell| !cell.is_empty());
+                let is_ready = input_cells.iter().all(|&cell| !cell.is_empty());
 
                 if is_ready {
                     let values : Vec<A> = input_cells

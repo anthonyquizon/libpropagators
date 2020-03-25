@@ -12,7 +12,7 @@ pub struct TruthManagementSystem<A> {
     invalid: HashSet<Premise>,
 }
 
-impl<A: Merge + Clone> TruthManagementSystem<A> {
+impl<A: Merge + Clone + PartialEq> TruthManagementSystem<A> {
     pub fn new(network: &Rc<RefCell<Network<A>>>) -> Self {
         Self {
             network: Rc::clone(network),

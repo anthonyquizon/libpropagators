@@ -6,14 +6,20 @@ pub trait Merge {
     fn merge(&self, other: &Self) -> Self;
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub enum Cell<A> {
-    Nothing,
-    Value(A),
+#[derive(Debug, PartialEq)]
+pub enum Event<A> {
+    Changed(A),
+    Unchanged,
     Contradiction
 }
 
-impl<A: Clone + Merge> Cell<A> {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Cell<A> {
+    Nothing,
+    Content(A),
+}
+
+impl<A: Clone + Merge + PartialEq> Cell<A> {
     pub fn new() -> Self {
         Self::Nothing
     }
@@ -27,37 +33,37 @@ impl<A: Clone + Merge> Cell<A> {
 
     pub fn to_option(&self) -> Option<A> {
         match &self {
-            Self::Value(value) => Some(value.clone()),
+            Self::Content(value) => Some(value.clone()),
             _ => None
         }
     }
 
-    pub fn assert_ok(&self) {
-        match self {
-            Self::Contradiction => panic!("Contradication"),
-            _ => {}
-        }
-    }
-
     pub fn wrap(value: A) -> Self {
-        Self::Value(value.clone())
+        Self::Content(value.clone())
     }
 
     pub fn unwrap(&self) -> A {
         match self {
-            Self::Value(value) => value.clone(),
+            Self::Content(value) => value.clone(),
             _ => panic!("no value")
         }
     }
 
-    pub fn merge(&self, value: &Self) -> Self {
+    pub fn merge(&self, value: &Self) -> Event<Self> {
         match (self, value) {
-            (Self::Nothing, _) => value.clone(),
-            (_, Self::Nothing) => self.clone(),
-            (Self::Value(a), Self::Value(b)) if a.is_valid(b) => {
-                Self::Value(a.merge(b))
+            (Self::Nothing, _) => Event::Changed(value.clone()),
+            (_, Self::Nothing) => Event::Unchanged,
+            (Self::Content(a), Self::Content(b)) if a.is_valid(b) => {
+                if *a == *b {
+                    Event::Unchanged
+                }
+                else {
+                    let cell = Self::Content(a.merge(b));
+
+                    Event::Changed(cell)
+                }
             }
-            (_, _) => Self::Contradiction
+            (_, _) => Event::Contradiction
         }
     }
 }

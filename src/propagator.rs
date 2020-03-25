@@ -8,10 +8,6 @@ pub enum Propagator<A> {
     Unary(fn(A) -> A),
     Binary(fn(A, A) -> A),
     Ternary(fn(A, A, A) -> A),
-
-    //Unary(Box<dyn FnMut(&A) -> A>),
-    //Binary(Box<dyn FnMut(&A, &A) -> A>),
-    //Ternary(Box<dyn FnMut(&A, &A, &A) -> A>),
 }
 
 impl<A: Merge + Clone> Propagator<A> {

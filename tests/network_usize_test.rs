@@ -17,8 +17,8 @@ fn test_network_add() {
 
     network.run();
 
-    let expected = Some(3);
-    let actual = network.read_cell(c);
+    let expected = 3;
+    let actual = network.read_cell(c).unwrap();
     
     assert_eq!(expected, actual);
 }
@@ -38,11 +38,33 @@ fn test_network_constraint_add() {
 
     network.run();
 
-    let expected = Some(1);
-    let actual = network.read_cell(a);
+    let expected = 1;
+    let actual = network.read_cell(a).unwrap();
     
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn test_network_constraint_product() {
+    let mut network:Network<usize> = Network::new();
+
+    let a = network.make_cell();
+    let b = network.make_cell();
+    let c = network.make_cell();
+
+    network.write_cell(b, 2);
+    network.write_cell(c, 6);
+
+    network.constraint_product(a, b, c);
+
+    network.run();
+
+    let expected = 3;
+    let actual = network.read_cell(a).unwrap();
+    
+    assert_eq!(expected, actual);
+}
+
 /*
 #[test]
 fn test_network_expr() {

@@ -1,7 +1,7 @@
 use crate::cell::{ Merge };
 
 use std::cmp;
-use std::ops::{ Add, Sub, Mul };
+use std::ops::{ Add, Sub, Mul, Div };
 
 macro_rules! max {
     ($x: expr) => ($x);
@@ -73,15 +73,30 @@ impl Mul for Interval {
         let min = min!(p1, p2, p3, p4);
         let max = max!(p1, p2, p3, p4);
 
-        println!("min {} {} {} {}: {}", p1, p2, p3, p4, min);
-        println!("max {} {} {} {}: {}", p1, p2, p3, p4, max);
-
         Self {
             min, 
             max
         }
     }
 }
+
+impl Div for Interval {
+    type Output = Self;
+
+    fn div(self, other: Self) -> Self {
+        if other.min <= 0 && 0 <= other.max && other.min <= other.max {
+            panic!("cannot divide by interval spanning 0");
+        }
+
+        let other_inverse = Self { 
+            min: 1 / other.max,  
+            max: 1 / other.min
+        };
+
+        self * other_inverse
+    }
+}
+
 
 impl Merge for Interval {
     fn is_valid(&self, _other: &Self) -> bool { true }

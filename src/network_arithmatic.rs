@@ -48,9 +48,9 @@ impl<A> Network<A> where A: Merge + Clone + Add<Output=A> + Sub<Output=A> {
 
 impl<A> Network<A> where A: Merge + Clone + Mul<Output=A> + Div<Output=A> {
     pub fn constraint_product(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
-        let prop = Propagator::Binary(|a, b| a * b);
-
-        self.make_propagator(prop, &[a, b, c]);
+        self.propagator_multiply(a, b, c);
+        self.propagator_divide(c, a, b);
+        self.propagator_divide(c, b, a);
     }
 
     pub fn constraint_similar_triangles(&mut self, a: cell::ID, b: cell::ID, c: cell::ID, d: cell::ID) {

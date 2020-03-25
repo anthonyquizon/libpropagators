@@ -2,7 +2,7 @@ use std::rc::{Rc};
 use std::hash::{Hash, Hasher};
 use crate::cell::{ Merge };
 use crate::tms::{ TruthManagementSystem, Premise };
-use std::ops::{ Add, Sub, Mul };
+use std::ops::{ Add, Sub, Mul, Div };
 use core::fmt::Debug;
 use std::collections::HashSet;
 
@@ -58,6 +58,18 @@ impl<A: Mul<Output = A>> Mul for Supported<A> {
         }
     }
 }
+
+impl<A: Div<Output = A>> Div for Supported<A> {
+    type Output = Supported<A>;
+
+    fn div(self, other: Self) -> Self {
+        Self {
+            value: self.value / other.value,
+            premises: self.premises.union(&other.premises).cloned().collect()
+        }
+    }
+}
+
 
 impl<A: Merge + PartialEq> Supported<A> {
     pub fn new(value: A, premises_arr: &[Premise]) -> Self {

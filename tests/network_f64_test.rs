@@ -19,7 +19,7 @@ fn test_network_f64_add() {
     let expected = 3.;
     let actual = network.read_cell(c).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn test_network_f64_multiply() {
     let expected = 3.;
     let actual = network.read_cell(c).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 
@@ -62,7 +62,7 @@ fn test_network_f64_constraint_add() {
     let expected = 1.;
     let actual = network.read_cell(a).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn test_network_f64_constraint_product_a() {
     let expected = 3.;
     let actual = network.read_cell(c).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 #[test]
@@ -104,7 +104,7 @@ fn test_network_f64_constraint_product_b() {
     let expected = 2.;
     let actual = network.read_cell(b).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn test_network_f64_constraint_product_c() {
     let expected = 1.5;
     let actual = network.read_cell(a).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 
@@ -154,7 +154,7 @@ fn test_network_f64_constraint_product_triangle() {
     let expected = 2.;
     let actual = network.read_cell(ratio).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 #[test]
@@ -182,7 +182,7 @@ fn test_network_f64_constraint_product_triangle_2() {
     let expected = 6.;
     let actual = network.read_cell(d).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10);
+    assert_eq!(expected, actual);
 }
 
 
@@ -206,7 +206,7 @@ fn test_network_f64_constraint_similar_triangles() {
     let expected = 6.;
     let actual = network.read_cell(d).unwrap();
     
-    assert!((expected - actual).abs() < 1e-10, "expected: {}, actual: {}", expected, actual);
+    assert_eq!(expected, actual);
 }
 
-//TODO test contradictions
+////TODO test contradictions

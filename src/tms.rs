@@ -3,6 +3,7 @@ use crate::cell::{Merge};
 use std::collections::HashSet;
 use std::rc::{Rc};
 use std::cell::RefCell;
+use std::fmt::Debug;
 
 pub type Premise = String;
 
@@ -12,7 +13,7 @@ pub struct TruthManagementSystem<A> {
     invalid: HashSet<Premise>,
 }
 
-impl<A: Merge + Clone + PartialEq> TruthManagementSystem<A> {
+impl<A: Merge + Debug + Clone + PartialEq> TruthManagementSystem<A> {
     pub fn new(network: &Rc<RefCell<Network<A>>>) -> Self {
         Self {
             network: Rc::clone(network),

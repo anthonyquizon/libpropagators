@@ -6,30 +6,39 @@ use crate::propagator::{Propagator};
 //use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::fmt::Debug;
 
 pub struct Network<A> {
     cells: Vec<Cell<A>>,
-    propagators: Vec<Propagator<A>>,
-
-    propagator_neighbours: HashMap<propagator::ID, Vec<cell::ID>>,
     cell_neighbours: HashMap<cell::ID, Vec<propagator::ID>>,
+
+    propagators: Vec<Propagator<A>>,
+    propagator_neighbours: HashMap<propagator::ID, Vec<cell::ID>>,
 
     alerted: HashSet<propagator::ID>
 }
 
 impl<A> Network<A>
-    where A: Merge + Clone + PartialEq
+    where A: Debug + Merge + Clone + PartialEq
 {
     pub fn new() -> Self {
         Self {
             cells: Vec::new(),
-            propagators: Vec::new(),
-
-            propagator_neighbours: HashMap::new(),
             cell_neighbours: HashMap::new(),
+
+            propagators: Vec::new(),
+            propagator_neighbours: HashMap::new(),
 
             alerted: HashSet::new()
         }
+    }
+
+    pub fn label_cell(&mut self, id: cell::ID, label: &str) {
+        self.cells[id].set_label(label);
+    }
+
+    pub fn label_propagator(&mut self, id: cell::ID, label: &str) {
+        //TODO
     }
 
     pub fn make_cell(&mut self) -> cell::ID {
@@ -72,12 +81,12 @@ impl<A> Network<A>
     }
 
     pub fn write_cell(&mut self, id: cell::ID, value: A) {
-        let cell = &self.cells[id];
+        let cell = &mut self.cells[id];
 
-        match cell.merge(&Cell::wrap(value)) {
+        match cell.merge(&value) {
             Event::Unchanged => {}
             Event::Contradiction => { panic!("Contradiction!"); }
-            Event::Changed(merged_cell) => {
+            Event::Changed => {
                 match self.cell_neighbours.get(&id) {
                     Some(neighbours) => {
                         for &prop_id in neighbours.iter() {
@@ -86,8 +95,6 @@ impl<A> Network<A>
                     }
                     None => {}
                 };
-
-                self.cells[id] = merged_cell;
             }
         }
 

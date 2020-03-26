@@ -31,12 +31,11 @@ impl<A: Clone + Add<Output = A>> Add for TruthManagementStore<A> {
 
     fn add(self, other: Self) -> Self {
         let mut supports = Vec::new();
-        print!("Add");
 
         for self_support in self.supports.iter() {
             for other_support in other.supports.iter() {
-                //FIXME
                 let support = (*self_support).clone() + (*other_support).clone();
+                
                 supports.push(support);
             }
         }
@@ -48,16 +47,27 @@ impl<A: Clone + Add<Output = A>> Add for TruthManagementStore<A> {
     }
 }
 
-//impl<A: Sub<Output = A>> Sub for Supported<A> {
-    //type Output = Supported<A>;
+impl<A: Clone + Sub<Output = A>> Sub for TruthManagementStore<A> {
+    type Output = TruthManagementStore<A>;
 
-    //fn sub(self, other: Self) -> Self {
-        //Self {
-            //value: self.value - other.value,
-            //premises: self.premises.union(&other.premises).cloned().collect()
-        //}
-    //}
-//}
+    fn sub(self, other: Self) -> Self {
+        let mut supports = Vec::new();
+
+        //merge
+        for self_support in self.supports.iter() {
+            for other_support in other.supports.iter() {
+                //FIXME remove clones
+                let support = (*self_support).clone() - (*other_support).clone();
+                supports.push(support);
+            }
+        }
+
+        Self {
+            system: Rc::clone(&self.system),
+            supports
+        }
+    }
+}
 
 //impl<A: Mul<Output = A>> Mul for Supported<A> {
     //type Output = Supported<A>;
@@ -111,9 +121,16 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
     }
 
     fn assimilate(&self, other_supported: &Supported<A>) -> Self {
+        // If you can get the same value from any of the current supports
+        // while only using a subset of the premises, ie. you require less 
+        // information to get to the same answer, then return the current tms
         let any_subsumes = self.supports.iter().any(|supported| {
             supported.subsumes(&other_supported)
         });
+
+            println!("===assimilate===");
+            println!("any subsumes {:?}", any_subsumes);
+            println!("===============");
 
         if any_subsumes {
             (*self).clone()
@@ -124,6 +141,10 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
                 .filter(|supported| !other_supported.subsumes(&supported))
                 .collect();
 
+            println!("===assimilate===");
+            println!("other {:?}", other_supported);
+            println!("supports {:?}", supports);
+            println!("===============");
             // FIXME: remove cloned
             let exists = supports
                 .iter()
@@ -177,7 +198,15 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
 impl<A: Debug + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {
     fn merge(&self, other: &Self) -> Self {
         let candidate = self.assimilate_many(&other.supports);
-        print!("\nself {:?}\n other: {:?}\n candidate: {:?} \n", self, other, candidate);
+        println!("===merge===");
+        println!("{:?}", self);
+        println!("{:?}", other);
+        println!("{:?}", candidate);
+        println!("==========");
+
+        if candidate.supports.len() > 2 {
+            return self.clone();
+        }
         let consequence = candidate.strongest_consequence();
 
         self.assimilate(&consequence)

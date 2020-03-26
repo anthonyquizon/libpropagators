@@ -1,4 +1,6 @@
 
+use std::fmt::Debug;
+
 pub type ID = usize;
 
 pub trait Merge {
@@ -7,65 +9,92 @@ pub trait Merge {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Event<A> {
-    Changed(A),
+pub enum Event {
+    Changed,
     Unchanged,
     Contradiction
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Cell<A> {
+pub enum Content<A> {
     Nothing,
     Content(A),
+    Contradiction
 }
 
-impl<A: Clone + Merge + PartialEq> Cell<A> {
+#[derive(Debug, Clone, PartialEq)]
+pub struct Cell<A> {
+    label: String,
+    content: Content<A>
+}
+
+impl<A: Debug + Clone + Merge + PartialEq> Cell<A> {
     pub fn new() -> Self {
-        Self::Nothing
+        Self {
+            label: String::from(""),
+            content: Content::Nothing
+        }
+    }
+
+    pub fn set_label(&mut self, label: &str) {
+        self.label = String::from(label);
     }
 
     pub fn is_empty(&self) -> bool {
-        match self {
-            Self::Nothing => true,
+        match &self.content {
+            Content::Nothing => true,
             _ => false
         }
     }
 
     pub fn to_option(&self) -> Option<A> {
-        match &self {
-            Self::Content(value) => Some(value.clone()),
+        match &self.content {
+            Content::Content(value) => Some(value.clone()),
             _ => None
         }
     }
 
     pub fn wrap(value: A) -> Self {
-        Self::Content(value.clone())
+        let mut cell = Self::new();
+        cell.content = Content::Content(value.clone());
+        cell
     }
 
     pub fn unwrap(&self) -> A {
-        match self {
-            Self::Content(value) => value.clone(),
+        match &self.content {
+            Content::Content(value) => value.clone(),
             _ => panic!("no value")
         }
     }
 
-    pub fn merge(&self, value: &Self) -> Event<Self> {
-        match (self, value) {
-            (Self::Nothing, _) => Event::Changed(value.clone()),
-            (_, Self::Nothing) => Event::Unchanged,
-            (Self::Content(a), Self::Content(b)) if a.is_valid(b) => {
-                let value = a.merge(b);
+    pub fn merge(&mut self, value: &A) -> Event {
+        println!("=== cell merge ===");
+        println!("{:?}", self);
+        println!("{:?}", value);
+        println!("========");
 
-                if *a == value {
+        match &self.content {
+            Content::Nothing => {
+                self.content = Content::Content(value.clone());
+
+                Event::Changed
+            },
+            Content::Content(old_value) if old_value.is_valid(value) => {
+                let merged_value = old_value.merge(value);
+
+                if *old_value == merged_value {
                     Event::Unchanged
                 }
                 else {
-                    let cell = Self::Content(value);
+                    self.content = Content::Content(merged_value);
 
-                    Event::Changed(cell)
+                    Event::Changed
                 }
             }
-            (_, _) => Event::Contradiction
+            _ => {
+                self.content = Content::Contradiction;
+                Event::Contradiction
+            }
         }
     }
 }

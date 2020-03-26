@@ -3,9 +3,10 @@ use crate::cell;
 use crate::cell::{Merge};
 use crate::network::{Network};
 use std::ops::{ Add, Sub, Mul, Div };
+use std::fmt::Debug;
 
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Add<Output=A>
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Add<Output=A>
 {
     pub fn propagator_add(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         let prop = Propagator::Binary(|a, b| a + b);
@@ -14,7 +15,7 @@ impl<A> Network<A> where A: Merge + Clone + PartialEq + Add<Output=A>
     }
 }
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Sub<Output=A> {
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Sub<Output=A> {
     pub fn propagator_subtract(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         let prop = Propagator::Binary(|a, b| a - b);
 
@@ -22,7 +23,7 @@ impl<A> Network<A> where A: Merge + Clone + PartialEq + Sub<Output=A> {
     }
 }
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Mul<Output=A> {
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Mul<Output=A> {
     pub fn propagator_multiply(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         let prop = Propagator::Binary(|a, b| a * b);
 
@@ -30,7 +31,7 @@ impl<A> Network<A> where A: Merge + Clone + PartialEq + Mul<Output=A> {
     }
 }
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Div<Output=A> {
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Div<Output=A> {
     pub fn propagator_divide(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         let prop = Propagator::Binary(|a, b| a / b);
 
@@ -38,7 +39,7 @@ impl<A> Network<A> where A: Merge + Clone + PartialEq + Div<Output=A> {
     }
 }
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Add<Output=A> + Sub<Output=A> {
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Add<Output=A> + Sub<Output=A> {
     pub fn constraint_add(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         self.propagator_add(a, b, c);
         self.propagator_subtract(c, a, b);
@@ -46,7 +47,7 @@ impl<A> Network<A> where A: Merge + Clone + PartialEq + Add<Output=A> + Sub<Outp
     }
 }
 
-impl<A> Network<A> where A: Merge + Clone + PartialEq + Mul<Output=A> + Div<Output=A> {
+impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Mul<Output=A> + Div<Output=A> {
     pub fn constraint_product(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
         self.propagator_multiply(a, b, c);
         self.propagator_divide(c, a, b);

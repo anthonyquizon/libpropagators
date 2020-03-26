@@ -24,11 +24,11 @@ impl<A: Merge + Clone + PartialEq> TruthManagementSystem<A> {
         !self.invalid.contains(&premise)
     }
 
-    pub fn invalidate_premise(&mut self, premise: Premise) {
+    pub fn kick_out_premise(&mut self, premise: Premise) {
         self.invalid.remove(&premise);
     }
 
-    pub fn validate_premise(&mut self, premise: Premise) {
+    pub fn brin_in_premise(&mut self, premise: Premise) {
         if self.invalid.contains(&premise) {
             self.network.borrow_mut().alert_all_propagators();
         }

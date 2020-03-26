@@ -1,7 +1,6 @@
 use propagators::network::{ Network };
 use propagators::cell_supported::{ Supported };
 use propagators::cell_interval::{ Interval };
-use propagators::cell::{ Cell };
 
 #[test]
 fn test_network_supported_interval_add() {

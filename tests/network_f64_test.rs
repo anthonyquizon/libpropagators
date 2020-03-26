@@ -1,5 +1,4 @@
 use propagators::network::{ Network };
-use propagators::cell::{ Cell };
 
 #[test]
 fn test_network_f64_add() {

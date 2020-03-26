@@ -84,14 +84,9 @@ impl<A: Merge + PartialEq> Supported<A> {
         }
     }
 
-    pub fn implies(&self, other: &Self) -> bool {
-        let value = self.value.merge(&other.value);
-
-        self.value == value
-    }
-
     pub fn subsumes(&self, other: &Self) -> bool {
-        self.implies(other) && self.premises.is_subset(&other.premises)
+        self.value == self.value.merge(&other.value) && 
+            self.premises.is_subset(&other.premises)
     }
 
     pub fn value(&self) -> &A {

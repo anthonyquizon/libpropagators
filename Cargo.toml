@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 im = "14.3.0"
+ordered-float = "1.0"

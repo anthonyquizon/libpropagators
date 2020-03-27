@@ -70,7 +70,7 @@ impl<A: Div<Output = A>> Div for Supported<A> {
 }
 
 
-impl<A: Merge + PartialEq> Supported<A> {
+impl<A> Supported<A> {
     pub fn new(value: A, premises_arr: &[Premise]) -> Self {
         let mut premises = HashSet::new();
 
@@ -84,17 +84,23 @@ impl<A: Merge + PartialEq> Supported<A> {
         }
     }
 
-    pub fn subsumes(&self, other: &Self) -> bool {
-        self.value == self.value.merge(&other.value) && 
-            self.premises.is_subset(&other.premises)
-    }
-
     pub fn value(&self) -> &A {
         &self.value
     }
 
     pub fn premises(&self) -> &HashSet<Premise> {
         &self.premises
+    }
+
+    pub fn premise_subset(&self, other: &Self) -> bool {
+        self.premises.is_subset(&other.premises)
+    }
+}
+
+impl<A: Merge + PartialEq> Supported<A> {
+    pub fn subsumes(&self, other: &Self) -> bool {
+        self.value == self.value.merge(&other.value) && 
+            self.premises.is_subset(&other.premises)
     }
 }
 

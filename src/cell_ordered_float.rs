@@ -1,6 +1,8 @@
 use crate::cell::{ Merge };
 
-impl Merge for f64 {
+use decimal::Decimal;
+
+impl Merge for Decimal {
     fn is_valid(&self, value: &Self) -> bool {
         self == value
     }

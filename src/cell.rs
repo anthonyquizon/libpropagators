@@ -81,6 +81,7 @@ impl<A: Debug + Clone + Merge + PartialEq> Cell<A> {
             },
             Content::Content(old_value) if old_value.is_valid(value) => {
                 let merged_value = old_value.merge(value);
+                println!("unchanged? {:?} {:?} {:?}", old_value, merged_value, *old_value == merged_value);
 
                 if *old_value == merged_value {
                     Event::Unchanged

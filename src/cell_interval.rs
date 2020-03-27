@@ -1,5 +1,5 @@
 use crate::cell::{ Merge };
-
+use decimal::Decimal;
 use std::ops::{ Add, Sub, Mul, Div };
 
 macro_rules! max {
@@ -28,8 +28,8 @@ macro_rules! min {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Interval {
-    min: f64,
-    max: f64
+    min: Decimal,
+    max: Decimal
 }
 
 impl Add for Interval {
@@ -99,7 +99,10 @@ impl Div for Interval {
 
 
 impl Merge for Interval {
-    fn is_valid(&self, _other: &Self) -> bool { true }
+    fn is_valid(&self, _other: &Self) -> bool { 
+        //TODO check to see if intervals are correct
+        true 
+    }
 
     fn merge(&self, other: &Self) -> Self {
         let min = max!(self.min, other.min);

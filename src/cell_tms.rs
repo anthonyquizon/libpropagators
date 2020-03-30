@@ -2,67 +2,43 @@ use std::rc::{Rc};
 use std::fmt::{Debug, Formatter, Result};
 use crate::cell::{ Merge };
 use crate::cell_supported::{ Supported };
+use std::hash::{Hash};
 use std::ops::{ Add, Sub, Mul, Div };
 use crate::tms::{ TruthManagementSystem, Premise };
+use std::collections::HashSet;
 
 
 #[derive(Clone)]
 pub struct TruthManagementStore<A> {
     system: Rc<TruthManagementSystem<TruthManagementStore<A>>>,
-    supports: Vec<Supported<A>>,
+    supports: HashSet<Supported<A>>,
 }
 
-impl<A: Debug> Debug for TruthManagementStore<A> {
+impl<A: Hash + PartialEq + Eq + Debug> Debug for TruthManagementStore<A> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_struct("Truth Management Store")
-         .field("supports", &self.supports)
-         .finish()
+        write!(f, "{:?}", self.supports)
     }
 }
 
-impl<A: PartialEq> PartialEq for TruthManagementStore<A> {
+impl<A: Hash + Eq + PartialEq> PartialEq for TruthManagementStore<A> {
     //FIXME
     fn eq(&self, other: &Self) -> bool {
-        //if self.supports.len() != other.supports.len() {
-            //return false;
-        //}
-
-        //let matched : Vec<Supported<A>> = Vec::new();
-
-        //for self_support in self.supports.iter() {
-            //for other_support in other.supports.iter() {
-                //if self_support == other_support {
-                    
-                    //break;
-                //}
-            //}
-
-            //if !exists {
-                //return false;
-            //}
-        //}
-
-        true
+        self.supports == other.supports
+        //true
     }
 }
 
-impl<A: Debug + Clone + Merge + PartialEq + Add<Output = A>> Add for TruthManagementStore<A> {
+impl<A: Debug + Clone + Merge + Hash + Eq + PartialEq + Add<Output = A>> Add for TruthManagementStore<A> {
     type Output = TruthManagementStore<A>;
 
     fn add(self, other: Self) -> Self {
-        let mut supports = Vec::new();
-
-        //println!("=== add ===");
-        //println!("{:?}", self);
-        //println!("{:?}", other);
+        let mut supports = HashSet::new();
 
         for self_support in self.supports.iter() {
             for other_support in other.supports.iter() {
                 let support = (*self_support).clone() + (*other_support).clone();
 
-                //if !self_support.premise_subset(&other_support) || self_support.value() == support.value() {
-                    supports.push(support);
-                //}
+                supports.insert(support);
             }
         }
 
@@ -74,22 +50,17 @@ impl<A: Debug + Clone + Merge + PartialEq + Add<Output = A>> Add for TruthManage
 }
 
 
-impl<A: Debug + Clone + Merge + PartialEq + Sub<Output = A>> Sub for TruthManagementStore<A> {
+impl<A: Debug + Clone + Merge + Hash + Eq + PartialEq + Sub<Output = A>> Sub for TruthManagementStore<A> {
     type Output = TruthManagementStore<A>;
 
     fn sub(self, other: Self) -> Self {
-        let mut supports = Vec::new();
+        let mut supports = HashSet::new();
 
-        //println!("=== sub ===");
-        //println!("{:?}", self);
-        //println!("{:?}", other);
         for self_support in self.supports.iter() {
             for other_support in other.supports.iter() {
                 let support = (*self_support).clone() - (*other_support).clone();
                 
-                //if !self_support.premise_subset(&other_support) || self_support.value() == support.value() {
-                    supports.push(support);
-                //}
+                supports.insert(support);
             }
         }
 
@@ -123,16 +94,16 @@ impl<A: Debug + Clone + Merge + PartialEq + Sub<Output = A>> Sub for TruthManage
 //}
 
 
-impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
+impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
     pub fn new(
         tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, 
         in_supports: &[(A, &[Premise])]
     ) -> Self {
-        let mut supports : Vec<Supported<A>> = Vec::new();
+        let mut supports : HashSet<Supported<A>> = HashSet::new();
         
         // FIXME clone
         for (value, premises) in in_supports {
-            supports.push(Supported::new(value.clone(), premises));
+            supports.insert(Supported::new(value.clone(), premises));
         }
 
         Self {
@@ -141,14 +112,14 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
         }
     }
 
-    fn from_supports(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, supports: Vec<Supported<A>>) -> Self {
+    fn from_supports(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, supports: HashSet<Supported<A>>) -> Self {
         Self {
             system: Rc::clone(tms),
             supports
         }
     }
 
-    fn assimilate_many(&self, other_supports: &Vec<Supported<A>>) -> Self {
+    fn assimilate_many(&self, other_supports: &HashSet<Supported<A>>) -> Self {
         let mut tms = self.clone();
 
         for other_supported in other_supports.iter() {
@@ -194,13 +165,13 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
         }
         else {
 
-            let subsumed_supports : Vec<&Supported<A>>= self.supports
+            let subsumed_supports : HashSet<&Supported<A>>= self.supports
                 .iter()
                 .filter(|supported| other_supported.subsumes(&supported))
                 .collect();
 
             // FIXME: remove cloned
-            let mut supports : Vec<Supported<A>> = Vec::new();
+            let mut supports : HashSet<Supported<A>> = HashSet::new();
 
             for support in self.supports.iter() {
                 let mut found = false;
@@ -213,7 +184,7 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
                 }
 
                 if !found {
-                    supports.push(support.clone());
+                    supports.insert(support.clone());
                 }
             }
 
@@ -222,37 +193,27 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
                 .all(|supported| supported == other_supported);
 
             if !exists {
-                supports.push(other_supported.clone());
+                supports.insert(other_supported.clone());
             }
-
-            //println!("===assimilate===");
-            //println!("other {:?}", other_supported);
-            //println!("self.supports {:?}", self.supports);
-            //println!("subsumed {:?}", subsumed_supports);
-            //println!("supports {:?}", supports);
-            //println!("===============");
 
             Self::from_supports(&self.system, supports)
         }
     }
 
     fn strongest_consequence(&self) -> Supported<A> {
-        let relevant_supports : Vec<&Supported<A>> = self.supports.iter().filter(|instance| {
-            instance.premises().iter().all(|premise| {
-                self.system.premise_is_valid(premise.clone())
-            })
-        }).collect();
+        self.supports.iter().fold(None, |acc, instance| {
+            match acc {
+                None => Some(instance.clone()),
+                Some(acc) => {
+                    let all_valid = instance.premises().iter().all(|premise| {
+                        self.system.premise_is_valid(premise.clone())
+                    });
 
-        let head : Supported<A>= (*relevant_supports.first().unwrap()).clone();
-        let tail : Vec<&Supported<A>> = relevant_supports
-            .iter()
-            .cloned()
-            .skip(1)
-            .collect();
-
-        tail.iter().fold(head, |acc, &support| {
-            acc.merge(support)
-        })
+                    if all_valid { Some(acc.merge(&instance)) }
+                    else { Some(acc) }
+                }
+            }
+        }).unwrap()
     }
 
     pub fn query(&mut self) -> A {
@@ -267,7 +228,7 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
         (*answer.value()).clone()
     }
 
-    pub fn supports(&self) -> &Vec<Supported<A>> {
+    pub fn supports(&self) -> &HashSet<Supported<A>> {
         &self.supports
     }
 }
@@ -275,7 +236,7 @@ impl<A: Debug + Clone + Merge + PartialEq> TruthManagementStore<A> {
 
 
 
-impl<A: Debug + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {
+impl<A: Debug + Hash + Eq + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {
     //fn is_valid(&self, other: &Self) -> bool { true }
 
     fn merge(&self, other: &Self) -> Self {

@@ -1,4 +1,5 @@
 use crate::network::{ Network };
+use std::hash::{Hash};
 use crate::cell::{Merge};
 use std::collections::HashSet;
 use std::rc::{Rc};

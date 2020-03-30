@@ -7,4 +7,4 @@ pub mod cell_usize;
 pub mod cell_interval;
 pub mod cell_supported;
 pub mod cell_tms;
-pub mod cell_ordered_float;
+pub mod cell_float;

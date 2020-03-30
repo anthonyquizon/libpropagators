@@ -1,8 +1,10 @@
 use crate::cell::{ Merge };
 
-use decimal::Decimal;
 
-impl Merge for Decimal {
+#[derive(PartialEq, Clone)]
+pub struct OrderedFloat(ordered_float::OrderedFloat<f64>);
+
+impl Merge for OrderedFloat {
     fn is_valid(&self, value: &Self) -> bool {
         self == value
     }

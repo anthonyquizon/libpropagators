@@ -1,5 +1,5 @@
 use crate::cell::{ Merge };
-use decimal::Decimal;
+//use ordered_float::OrderedFloat;
 use std::ops::{ Add, Sub, Mul, Div };
 
 macro_rules! max {
@@ -28,8 +28,11 @@ macro_rules! min {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Interval {
-    min: Decimal,
-    max: Decimal
+    //min: orderedfloat<f64>,
+    //max: orderedfloat<f64>
+
+    min: f64,
+    max: f64
 }
 
 impl Add for Interval {

@@ -23,24 +23,24 @@ impl<A: Debug> Debug for TruthManagementStore<A> {
 impl<A: PartialEq> PartialEq for TruthManagementStore<A> {
     //FIXME
     fn eq(&self, other: &Self) -> bool {
-        if self.supports.len() != other.supports.len() {
-            return false;
-        }
+        //if self.supports.len() != other.supports.len() {
+            //return false;
+        //}
 
-        let matched : Vec<Support<A>> = Vec::new();
+        //let matched : Vec<Supported<A>> = Vec::new();
 
-        for self_support in self.supports.iter() {
-            for other_support in other.supports.iter() {
-                if self_support == other_support {
+        //for self_support in self.supports.iter() {
+            //for other_support in other.supports.iter() {
+                //if self_support == other_support {
                     
-                    break;
-                }
-            }
+                    //break;
+                //}
+            //}
 
-            if !exists {
-                return false;
-            }
-        }
+            //if !exists {
+                //return false;
+            //}
+        //}
 
         true
     }

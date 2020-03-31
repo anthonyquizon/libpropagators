@@ -209,6 +209,9 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
                         self.system.premise_is_valid(premise.clone())
                     });
 
+                    println!("strongest consequence {:?} {:?} {:?}", acc, instance, acc.merge(&instance));
+
+                    //if valid
                     if all_valid { Some(acc.merge(&instance)) }
                     else { Some(acc) }
                 }
@@ -237,25 +240,10 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
 
 
 impl<A: Debug + Hash + Eq + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {
-    //fn is_valid(&self, other: &Self) -> bool { true }
-
     fn merge(&self, other: &Self) -> Self {
         let candidate = self.assimilate_many(&other.supports);
-        //if candidate.supports.len() > 2 {
-            //return self.clone();
-        //}
-
         let consequence = candidate.strongest_consequence();
 
-        //println!("===merge===");
-        //println!("self {:?}", self);
-        //println!("other {:?}", other);
-        //println!("candidate {:?}", candidate);
-        //println!("consequence {:?}", consequence);
-        //println!("assimilate {:?}", self.assimilate(&consequence));
-        //println!("==========");
-
-
-        self.assimilate(&consequence)
+        candidate.assimilate(&consequence)
     }
 }

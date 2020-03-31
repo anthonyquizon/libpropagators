@@ -107,7 +107,8 @@ fn test_network_tms_f64_constraint_add_many_supports() {
     network.run();
 
     let expected = TruthManagementStore::new(&tms_rc, &[
-        (Float::new(1.), &[String::from("foo"), String::from("bar")])
+        (Float::new(1.), &[String::from("foo"), String::from("bar")]),
+        (Float::new(3.), &[String::from("foo"), String::from("baz")])
     ]);
     let actual = network.read_cell(a).unwrap();
 

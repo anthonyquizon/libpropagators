@@ -104,13 +104,15 @@ impl<A: Merge + PartialEq> Supported<A> {
     }
 }
 
-impl<A: Merge + Clone + PartialEq> Merge for Supported<A> {
+impl<A: Debug + Merge + Clone + PartialEq> Merge for Supported<A> {
     fn is_valid(&self, other: &Self) -> bool {
         self.value.is_valid(&other.value)
     }
 
     fn merge(&self, other: &Self) -> Self {
         let merged_value = self.value.merge(&other.value);
+
+        println!("supported merge {:?} {:?} {:?}", self, other, merged_value);
 
         if merged_value == self.value {
             if other.value.merge(&merged_value) == other.value {
@@ -130,6 +132,7 @@ impl<A: Merge + Clone + PartialEq> Merge for Supported<A> {
             (*other).clone()
         }
         else {
+            println!("merge union");
             Self {
                 value: merged_value,
                 premises: self.premises.union(&other.premises).cloned().collect()

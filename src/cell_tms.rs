@@ -129,23 +129,7 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
         tms
     }
 
-//supported Truth Management Store { supports: [Supported { value: 3.0, premises: {"bar"} }, Supported { value: 5.0, premises: {"baz"} }] }                                                                                                                                                  
-//other supported Supported { value: 1.0, premises: {"baz", "foo", "bar"} }                                                                                                                                                                                                                  
-//is valid true                                                                                                                                                                                                                                                                              
-//any subsumes false  
     fn assimilate(&self, other_supported: &Supported<A>) -> Self {
-        let is_valid = self.supports.iter().all(|supported| {
-            let premises = supported.premises();
-            let other_premises = other_supported.premises();
-
-            if supported.value() == other_supported.value() {
-                return true;
-            }
-
-            supported.value() != other_supported.value() 
-                && !premises.is_subset(&other_premises) && !other_premises.is_subset(&premises)
-        });
-
         // If you can get the same value from any of the current supports
         // while only using a subset of the premises, ie. you require less 
         // information to get to the same answer, then return the current tms
@@ -153,14 +137,7 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
             supported.subsumes(&other_supported)
         });
 
-        println!("===assimilate===");
-        println!("supported {:?}", self);
-        println!("other supported {:?}", other_supported);
-        println!("is valid {:?}", is_valid);
-        println!("any subsumes {:?}", any_subsumes);
-        println!("===============");
-
-        if !is_valid || any_subsumes {
+        if any_subsumes {
             (*self).clone()
         }
         else {
@@ -235,8 +212,6 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
         &self.supports
     }
 }
-
-
 
 
 impl<A: Debug + Hash + Eq + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {

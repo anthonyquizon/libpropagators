@@ -112,8 +112,6 @@ impl<A: Debug + Merge + Clone + PartialEq> Merge for Supported<A> {
     fn merge(&self, other: &Self) -> Self {
         let merged_value = self.value.merge(&other.value);
 
-        println!("supported merge {:?} {:?} {:?}", self, other, merged_value);
-
         if merged_value == self.value {
             if other.value.merge(&merged_value) == other.value {
                 if self.premises != other.premises && 

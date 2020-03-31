@@ -186,9 +186,6 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
                         self.system.premise_is_valid(premise.clone())
                     });
 
-                    println!("strongest consequence {:?} {:?} {:?}", acc, instance, acc.merge(&instance));
-
-                    //if valid
                     if all_valid { Some(acc.merge(&instance)) }
                     else { Some(acc) }
                 }

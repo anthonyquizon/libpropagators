@@ -141,29 +141,13 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
             (*self).clone()
         }
         else {
-
-            let subsumed_supports : HashSet<&Supported<A>>= self.supports
-                .iter()
-                .filter(|supported| other_supported.subsumes(&supported))
-                .collect();
-
             // FIXME: remove cloned
-            let mut supports : HashSet<Supported<A>> = HashSet::new();
-
-            for support in self.supports.iter() {
-                let mut found = false;
-
-                for &subsumed in subsumed_supports.iter() {
-                    if support == subsumed {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if !found {
-                    supports.insert(support.clone());
-                }
-            }
+            let mut supports : HashSet<Supported<A>>= self.supports
+                .iter()
+                .cloned()
+                //NB: the subsumes objects are swapped compared to the any_subsumes clause
+                .filter(|supported| !other_supported.subsumes(&supported))
+                .collect();
 
             let exists = supports
                 .iter()
@@ -201,7 +185,7 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
             self.supports = better_tms.supports;
         }
 
-        // FIXME
+        // FIXME remove clone
         (*answer.value()).clone()
     }
 

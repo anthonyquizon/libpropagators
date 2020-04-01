@@ -23,14 +23,13 @@ impl<T> Propagator<T> {
         }
     }
 
-    pub fn input_ids(&self) -> impl Iterator<Item = &CellID> {
-        let n = self.neighbours.len();
-        self.neighbours.iter().take(n - 1)
-    }
-
-
-    pub fn invoke(&self, inputs: &[&T]) -> T {
-        let n = self.neighbours.len();
+    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, f: F) -> T {
+        let n = self.neighbours.len() - 1;
+        let inputs : Vec<&T> = self.neighbours
+            .iter()
+            .take(n - 1)
+            .map(f)
+            .collect();
 
         match &self.procedure {
             Procedure::Unary(proc) => proc(&inputs[0]),

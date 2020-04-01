@@ -74,20 +74,10 @@ impl<T: Merge + PartialEq> Network<T> {
 
             for &propagator_id in self.alerted.iter() {
                 let propagator = &self.propagators[propagator_id];
-                let inputs : Vec<&T>= propagator.input_ids().map(|&cell_id| {
+
+                propagator.invoke(|&cell_id| {
                     self.cells[cell_id].read()
-                }).collect();
-
-                propagator.invoke(&inputs);
-                    //let mut contents = Vec::new();
-
-                    //for &cell_id in cell_ids {
-                        //let content = self.cells[cell_id].read();
-                        //contents.push(content);
-                    //}
-
-                    //contents
-                //});
+                });
                 
             }
         }

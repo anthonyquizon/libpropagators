@@ -196,9 +196,12 @@ impl<A: Debug + Clone + Hash + Merge + PartialEq + Eq> TruthManagementStore<A> {
 
 
 impl<A: Debug + Hash + Eq + Clone + Merge + PartialEq> Merge for TruthManagementStore<A> {
+    //TODO merge  
     fn merge(&self, other: &Self) -> Self {
         let candidate = self.assimilate_many(&other.supports);
         let consequence = candidate.strongest_consequence();
+
+        //TODO check if contradiction
 
         candidate.assimilate(&consequence)
     }

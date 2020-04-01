@@ -30,7 +30,7 @@ impl<A: Merge + Debug + Clone + PartialEq> TruthManagementSystem<A> {
         self.invalid.remove(&premise);
     }
 
-    pub fn brin_in_premise(&mut self, premise: Premise) {
+    pub fn bring_in_premise(&mut self, premise: Premise) {
         if self.invalid.contains(&premise) {
             self.network.borrow_mut().alert_all_propagators();
         }

@@ -4,7 +4,11 @@ use ordered_float::NotNan;
 
 
 #[derive(Hash, Debug, PartialEq, Eq, Clone)]
-pub struct Float(NotNan<f64>);
+pub enum Float {
+    Nothing,
+    Value(NotNan<f64>),
+    Contradiction
+};
 
 impl Float {
     pub fn new(val: f64) -> Self {
@@ -20,7 +24,6 @@ impl Add for Float {
     }
 }
 
-
 impl Sub for Float {
     type Output = Float;
 
@@ -30,12 +33,14 @@ impl Sub for Float {
 }
 
 impl Merge for Float {
-    fn is_valid(&self, value: &Self) -> bool {
-        self == value
-    }
-
-    fn merge(&self, _other: &Self) -> Self {
-        self.clone()
+    fn merge(&self, other: &Self) -> Self {
+        match (&self, other) {
+            (Self::Nothing, Self::Nothing) => { Self::Nothing },
+            (Self::Value(x), Self::Nothing) => { Self::Value(x) },
+            (Self::Nothing, Self::Value(x)) => { Self::Value(x) },
+            (Self::Value(x), Self::Value(y)) if x == y => { Self::Value(x) },
+            (_, _) => { Self::Contradiction },
+        }
     }
 }
 

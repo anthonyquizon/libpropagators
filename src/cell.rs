@@ -1,33 +1,46 @@
 
-use crate::node::Node;
 use crate::util::PropagatorID;
+use std::collections::HashSet;
 
-pub type Cell<T> = Node<T, PropagatorID>;
+#[derive(Default)]
+pub struct Cell<T> {
+    pub label: String,
+    content: T,
+    neighbours: HashSet<PropagatorID>,
+}
 
 pub trait Merge {
     fn merge(&self, other: &Self) -> Self;
     fn is_contradiction(&self) -> bool;
 }
 
+impl<T: Default> Cell<T> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl<T> Cell<T> {
+    pub fn add_neighbour(&mut self, id: PropagatorID) {
+        self.neighbours.insert(id);
+    }
+
+    pub fn read(&self) -> &T {
+        &self.content
+    }
+}
+
 impl<T: Merge + PartialEq> Cell<T> {
-    pub fn write<F, G>(&self, content: T, on_changed: F, on_contradiction: G) -> Self 
-        where F: FnMut(&PropagatorID),
-              G: FnOnce() {
-                  let new_content = self.map(|self_content| {
-                      self_content.merge(&content)
-                  });
+    pub fn write<F, G>(&mut self, content: T, mut on_changed: F)
+        where F: FnMut(&PropagatorID) {
+            let new_content = self.content.merge(&content);
 
-                  if new_content.is_contradiction() {
-                      on_contradiction();
-                  }
+            if self.content != new_content {
+                self.neighbours.iter().for_each(|id| { 
+                    on_changed(id) 
+                });
 
-                  if !self.is_content_equal(new_content) {
-                    self.for_each_neighbour(on_changed)
-                  }
-
-                  Self::new(content)
-              }
-
-    //pub fn read(&self) -> T {
-    //}
+                self.content = new_content
+            }
+        }
 }

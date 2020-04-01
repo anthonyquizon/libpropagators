@@ -20,8 +20,8 @@ impl<T: Default> Network<T> {
         Self::default()
     }
 
-    pub fn make_cell(&mut self, content: T) -> CellID {
-        let cell = Cell::new(content);
+    pub fn make_cell(&mut self) -> CellID {
+        let cell = Cell::new();
 
         self.cells.push(cell);
 
@@ -48,9 +48,9 @@ impl<T: Default> Network<T> {
         id
     }
 
-    //pub fn read_cell(&self, id: cell::ID) -> Option<T> {
-        //self.cells[id].to_option()
-    //}
+    pub fn read_cell(&self, id: CellID) -> &T {
+        self.cells[id].read()
+    }
 
 }
 

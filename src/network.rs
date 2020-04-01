@@ -1,4 +1,4 @@
-use crate::cell::Cell;
+use crate::cell::{Merge, Cell};
 use crate::propagator;
 use crate::propagator::{Propagator, Procedure};
 use crate::util::{CellID, PropagatorID};
@@ -29,7 +29,9 @@ impl<T: Default> Network<T> {
 
         id
     }
+}
 
+impl<T> Network<T> {
     pub fn make_propagator(&mut self, proc: Procedure<T>, cell_ids: &[CellID]) -> PropagatorID {
         let mut propagator = Propagator::new(proc);
 
@@ -51,7 +53,45 @@ impl<T: Default> Network<T> {
     pub fn read_cell(&self, id: CellID) -> &T {
         self.cells[id].read()
     }
+}
 
+impl<T: Merge + PartialEq> Network<T> {
+    pub fn write_cell(&mut self, id: CellID, value: T) {
+        let cell = &mut self.cells[id];
+        let alerted = cell.write(value);
+
+        if let Some(alerted) = alerted {
+            for &propagator_id in alerted.iter() {
+                self.alerted.insert(propagator_id);
+            }
+        }
+
+    }
+
+    pub fn run(&mut self) {
+        while self.alerted.len() > 0 {
+            let mut writes : Vec<(CellID, T)>= Vec::new();
+
+            for &propagator_id in self.alerted.iter() {
+                let propagator = &self.propagators[propagator_id];
+                let inputs : Vec<&T>= propagator.input_ids().map(|&cell_id| {
+                    self.cells[cell_id].read()
+                }).collect();
+
+                propagator.invoke(&inputs);
+                    //let mut contents = Vec::new();
+
+                    //for &cell_id in cell_ids {
+                        //let content = self.cells[cell_id].read();
+                        //contents.push(content);
+                    //}
+
+                    //contents
+                //});
+                
+            }
+        }
+    }
 }
 
 

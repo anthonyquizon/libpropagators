@@ -11,7 +11,7 @@ pub enum Procedure<T> {
 pub struct Propagator<T> {
     pub label: String,
     procedure: Procedure<T>,
-    neighbours: HashSet<CellID>
+    neighbours: Vec<CellID>
 }
 
 impl<T> Propagator<T> {
@@ -19,19 +19,29 @@ impl<T> Propagator<T> {
         Self {
             label: String::from(""),
             procedure,
-            neighbours: HashSet::new()
+            neighbours: Vec::new()
         }
     }
 
-    pub fn run(&self, contents: &[T]) -> T {
+    pub fn input_ids(&self) -> impl Iterator<Item = &CellID> {
+        let n = self.neighbours.len();
+        self.neighbours.iter().take(n - 1)
+    }
+
+
+    pub fn invoke(&self, inputs: &[&T]) -> T {
+        let n = self.neighbours.len();
+
         match &self.procedure {
-            Procedure::Unary(proc) => proc(&contents[0]),
-            Procedure::Binary(proc) => proc(&contents[0], &contents[1]),
-            Procedure::Ternary(proc) => proc(&contents[0], &contents[1], &contents[2]),
+            Procedure::Unary(proc) => proc(&inputs[0]),
+            Procedure::Binary(proc) => proc(&inputs[0], &inputs[1]),
+            Procedure::Ternary(proc) => proc(&inputs[0], &inputs[1], &inputs[2]),
         }
     }
 
     pub fn add_neighbour(&mut self, id: CellID) {
-        self.neighbours.insert(id);
+        self.neighbours.push(id);
+        self.neighbours.sort_unstable();
+        self.neighbours.dedup();
     }
 }

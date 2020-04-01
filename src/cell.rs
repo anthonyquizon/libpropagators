@@ -1,12 +1,11 @@
 
 use crate::util::PropagatorID;
-use std::collections::HashSet;
 
 #[derive(Default)]
 pub struct Cell<T> {
     pub label: String,
     content: T,
-    neighbours: HashSet<PropagatorID>,
+    neighbours: Vec<PropagatorID>,
 }
 
 pub trait Merge {
@@ -22,7 +21,9 @@ impl<T: Default> Cell<T> {
 
 impl<T> Cell<T> {
     pub fn add_neighbour(&mut self, id: PropagatorID) {
-        self.neighbours.insert(id);
+        self.neighbours.push(id);
+        self.neighbours.sort_unstable();
+        self.neighbours.dedup();
     }
 
     pub fn read(&self) -> &T {
@@ -31,16 +32,16 @@ impl<T> Cell<T> {
 }
 
 impl<T: Merge + PartialEq> Cell<T> {
-    pub fn write<F, G>(&mut self, content: T, mut on_changed: F)
-        where F: FnMut(&PropagatorID) {
+    pub fn write(&mut self, content: T) -> Option<&Vec<PropagatorID>> {
             let new_content = self.content.merge(&content);
 
             if self.content != new_content {
-                self.neighbours.iter().for_each(|id| { 
-                    on_changed(id) 
-                });
+                self.content = new_content;
 
-                self.content = new_content
+                Some(&self.neighbours)
+            }
+            else {
+                None
             }
         }
 }

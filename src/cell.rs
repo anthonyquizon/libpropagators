@@ -10,7 +10,9 @@ pub struct Cell<T> {
 
 pub trait Merge {
     fn merge(&self, other: &Self) -> Self;
+
     fn is_contradiction(&self) -> bool;
+    fn is_empty(&self) -> bool;
 }
 
 impl<T: Default> Cell<T> {

@@ -1,5 +1,5 @@
 use crate::util::CellID;
-use crate::cell::Merge;
+use crate::content::State;
 
 pub enum Procedure<T> {
     Unary(fn(&T) -> T),
@@ -29,7 +29,7 @@ impl<T> Propagator<T> {
     }
 }
 
-impl<T: Merge> Propagator<T> {
+impl<T: State> Propagator<T> {
     pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, read: F) -> Option<(CellID, T)> {
         let n_inputs = self.neighbours.len() - 1;
         let &output_id = self.neighbours.last().unwrap();

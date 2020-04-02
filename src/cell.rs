@@ -1,18 +1,12 @@
 
 use crate::util::PropagatorID;
+use crate::content::Merge;
 
 #[derive(Default)]
 pub struct Cell<T> {
     pub label: String,
     content: T,
     neighbours: Vec<PropagatorID>,
-}
-
-pub trait Merge {
-    fn merge(&self, other: &Self) -> Self;
-
-    fn is_contradiction(&self) -> bool;
-    fn is_empty(&self) -> bool;
 }
 
 impl<T: Default> Cell<T> {

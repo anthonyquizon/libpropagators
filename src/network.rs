@@ -1,4 +1,5 @@
-use crate::cell::{Merge, Cell};
+use crate::cell::Cell;
+use crate::content::{ State, Merge };
 use crate::propagator::{Propagator, Procedure};
 use crate::util::{CellID, PropagatorID};
 
@@ -66,7 +67,7 @@ impl<T: Merge + PartialEq> Network<T> {
     }
 }
 
-impl<T: Merge + PartialEq> Network<T> {
+impl<T: State + Merge + PartialEq> Network<T> {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
             let mut writes : Vec<(CellID, T)>= Vec::new();

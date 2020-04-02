@@ -7,5 +7,6 @@ pub mod cell;
 //pub mod cell_interval;
 //pub mod content_supported;
 //pub mod content_tms;
-//pub mod content_float;
+pub mod content;
+pub mod content_float;
 mod util;

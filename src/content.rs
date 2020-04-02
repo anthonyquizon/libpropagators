@@ -37,14 +37,12 @@ impl<A> State for Content<A> {
 }
 
 impl<A: Clone> Content<A> {
-    pub fn map<F: Fn(A, A) -> A>(self, other: Self, f: F) -> Self {
+    pub fn map<F: Fn(&A, &A) -> Self>(&self, other: &Self, f: F) -> Self {
         match (self, other) {
             (Self::Nothing, Self::Nothing) => Self::Nothing,
             (Self::Value(val), Self::Nothing) => Self::Value(val.clone()),
             (Self::Nothing, Self::Value(val)) => Self::Value(val.clone()),
-            (Self::Value(val_self), Self::Value(val_other)) => {
-                Self::Value(f(val_self, val_other))
-            },
+            (Self::Value(a), Self::Value(b)) => f(a, b),
             (_, Self::Contradiction) => Self::Contradiction,
             (Self::Contradiction, _) => Self::Contradiction
         }

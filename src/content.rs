@@ -7,7 +7,7 @@ pub trait Merge {
     fn merge(&self, other: &Self) -> Self;
 }
 
-#[derive(Hash, Debug, PartialEq, Eq, Clone)]
+#[derive(Hash, PartialEq, Eq, Clone)]
 pub enum Content<A> {
     Nothing,
     Value(A),
@@ -37,7 +37,7 @@ impl<A> State for Content<A> {
 }
 
 impl<A: Clone> Content<A> {
-    pub fn map<F: Fn(&A, &A) -> Self>(&self, other: &Self, f: F) -> Self {
+    pub fn lift<F: Fn(&A, &A) -> Self>(&self, other: &Self, f: F) -> Self {
         match (self, other) {
             (Self::Nothing, Self::Nothing) => Self::Nothing,
             (Self::Value(val), Self::Nothing) => Self::Value(val.clone()),

@@ -1,60 +1,60 @@
-use crate::propagator::{Propagator};
-use crate::cell;
-use crate::cell::{Merge};
-use crate::network::{Network};
+use crate::propagator::{Procedure};
+use crate::util::CellID;
+use crate::network::Network;
 use std::ops::{ Add, Sub, Mul, Div };
 use std::fmt::Debug;
 
 
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Add<Output=A>
-{
-    pub fn propagator_add(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
-        let prop = Propagator::Binary(|a, b| a + b);
+impl<T: Add<Output=T>> Network<T> {
+    pub fn propagator_add(&mut self, a: CellID, b: CellID, c: CellID) {
+        let proc = Procedure::Binary(|a: T, b: T| a + b);
+
+        self.make_propagator(proc, &[a, b, c]);
+    }
+}
+
+impl<T: Sub<Output=T>> Network<T>  {
+    pub fn propagator_subtract(&mut self, a: CellID, b: CellID, c: CellID) {
+        let prop = Procedure::Binary(|a, b| a - b);
 
         self.make_propagator(prop, &[a, b, c]);
     }
 }
 
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Sub<Output=A> {
-    pub fn propagator_subtract(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
-        let prop = Propagator::Binary(|a, b| a - b);
+impl<T: Mul<Output=T>> Network<T> {
+    pub fn propagator_multiply(&mut self, a: CellID, b: CellID, c: CellID) {
+        let prop = Procedure::Binary(|a, b| a * b);
 
         self.make_propagator(prop, &[a, b, c]);
     }
 }
 
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Mul<Output=A> {
-    pub fn propagator_multiply(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
-        let prop = Propagator::Binary(|a, b| a * b);
+impl<T: Div<Output=T>> Network<T> {
+    pub fn propagator_divide(&mut self, a: CellID, b: CellID, c: CellID) {
+        let prop = Procedure::Binary(|a, b| a / b);
 
         self.make_propagator(prop, &[a, b, c]);
     }
 }
 
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Div<Output=A> {
-    pub fn propagator_divide(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
-        let prop = Propagator::Binary(|a, b| a / b);
-
-        self.make_propagator(prop, &[a, b, c]);
-    }
-}
-
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Add<Output=A> + Sub<Output=A> {
-    pub fn constraint_add(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
+impl<T: Add<Output=T> + Sub<Output=T>> Network<T> {
+    pub fn constraint_add(&mut self, a: CellID, b: CellID, c: CellID) {
         self.propagator_add(a, b, c);
         self.propagator_subtract(c, a, b);
         self.propagator_subtract(c, b, a);
     }
 }
 
-impl<A> Network<A> where A: Merge + Debug +  Clone + PartialEq + Mul<Output=A> + Div<Output=A> {
-    pub fn constraint_product(&mut self, a: cell::ID, b: cell::ID, c: cell::ID) {
+impl<T: Mul<Output=T> + Div<Output=T>> Network<T> {
+    pub fn constraint_product(&mut self, a: CellID, b: CellID, c: CellID) {
         self.propagator_multiply(a, b, c);
         self.propagator_divide(c, a, b);
         self.propagator_divide(c, b, a);
     }
+}
 
-    pub fn constraint_similar_triangles(&mut self, a: cell::ID, b: cell::ID, c: cell::ID, d: cell::ID) {
+impl<T: Default + Mul<Output=T> + Div<Output=T>> Network<T> {
+    pub fn constraint_similar_triangles(&mut self, a: CellID, b: CellID, c: CellID, d: CellID) {
         let ratio = self.make_cell();
 
         self.constraint_product(a, ratio, b);

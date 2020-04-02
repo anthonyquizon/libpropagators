@@ -31,6 +31,8 @@ impl<T: Merge + PartialEq> Cell<T> {
     pub fn write(&mut self, content: T) -> Option<&Vec<PropagatorID>> {
             let new_content = self.content.merge(&content);
 
+            println!("merge {}", self.label);
+
             if self.content != new_content {
                 self.content = new_content;
 

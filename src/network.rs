@@ -30,6 +30,10 @@ impl<T: Default> Network<T> {
 }
 
 impl<T> Network<T> {
+    pub fn label_cell(&mut self, id: CellID, label: &str) {
+        self.cells[id].label = String::from(label);
+    }
+
     pub fn make_propagator(&mut self, proc: Procedure<T>, cell_ids: &[CellID]) -> PropagatorID {
         let mut propagator = Propagator::new(proc);
 
@@ -44,6 +48,8 @@ impl<T> Network<T> {
         for &cell_id in cell_ids {
             self.cells[cell_id].add_neighbour(id);
         }
+
+        self.alerted.insert(id);
 
         id
     }
@@ -63,11 +69,11 @@ impl<T: Merge + PartialEq> Network<T> {
                 self.alerted.insert(propagator_id);
             }
         }
-
     }
 }
 
-impl<T: State + Merge + PartialEq> Network<T> {
+impl<T> Network<T> 
+where T: State + Clone + Merge + PartialEq {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
             let mut writes : Vec<(CellID, T)>= Vec::new();

@@ -10,31 +10,26 @@ pub enum Procedure<T> {
 pub struct Propagator<T> {
     pub label: String,
     procedure: Procedure<T>,
-    neighbours: Vec<CellID>
+    inputs: Vec<CellID>,
+    output: CellID
 }
 
 impl<T> Propagator<T> {
-    pub fn new(procedure: Procedure<T>) -> Self {
+    pub fn new(procedure: Procedure<T>, inputs: &[CellID], output: CellID) -> Self {
         Self {
             label: String::from(""),
             procedure,
-            neighbours: Vec::new()
+            inputs: inputs.into(),
+            output
         }
-    }
-
-    pub fn add_neighbour(&mut self, id: CellID) {
-        self.neighbours.push(id);
     }
 }
 
 //FIXME: remove clone
 impl<T: Clone + State> Propagator<T> {
     pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, read: F) -> Option<(CellID, T)> {
-        let n_inputs = self.neighbours.len() - 1;
-        let &output_id = self.neighbours.last().unwrap();
-        let inputs : Vec<T> = self.neighbours
+        let inputs : Vec<T> = self.inputs
             .iter()
-            .take(n_inputs)
             .map(read)
             .cloned() //FIXME remove cloned
             .collect(); 
@@ -63,6 +58,6 @@ impl<T: Clone + State> Propagator<T> {
             }
         };
 
-        Some((output_id, output))
+        Some((self.output, output))
     }
 }

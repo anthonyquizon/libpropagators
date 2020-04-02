@@ -130,7 +130,6 @@ impl<A: Debug + Merge + Clone + PartialEq> Merge for Supported<A> {
             (*other).clone()
         }
         else {
-            println!("merge union");
             Self {
                 value: merged_value,
                 premises: self.premises.union(&other.premises).cloned().collect()

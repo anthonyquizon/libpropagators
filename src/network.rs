@@ -2,6 +2,7 @@ use crate::cell::Cell;
 use crate::content::{ State, Merge };
 use crate::propagator::{Propagator, Procedure};
 use crate::util::{CellID, PropagatorID};
+use std::fmt::Debug;
 
 use std::collections::HashSet;
 
@@ -34,18 +35,18 @@ impl<T> Network<T> {
         self.cells[id].label = String::from(label);
     }
 
-    pub fn make_propagator(&mut self, proc: Procedure<T>, cell_ids: &[CellID]) -> PropagatorID {
-        let mut propagator = Propagator::new(proc);
+    pub fn label_propagator(&mut self, id: PropagatorID, label: &str) {
+        self.propagators[id].label = String::from(label);
+    }
 
-        for &cell_id in cell_ids {
-            propagator.add_neighbour(cell_id);
-        }
+    pub fn make_propagator(&mut self, proc: Procedure<T>, inputs: &[CellID], output: CellID) -> PropagatorID {
+        let propagator = Propagator::new(proc, inputs, output);
 
         self.propagators.push(propagator);
 
         let id = self.propagators.len() - 1;
 
-        for &cell_id in cell_ids {
+        for &cell_id in inputs {
             self.cells[cell_id].add_neighbour(id);
         }
 
@@ -59,7 +60,7 @@ impl<T> Network<T> {
     }
 }
 
-impl<T: Merge + PartialEq> Network<T> {
+impl<T: Debug + Merge + PartialEq> Network<T> {
     pub fn write_cell(&mut self, id: CellID, value: T) {
         let cell = &mut self.cells[id];
         let alerted = cell.write(value);
@@ -73,7 +74,7 @@ impl<T: Merge + PartialEq> Network<T> {
 }
 
 impl<T> Network<T> 
-where T: State + Clone + Merge + PartialEq {
+where T: Debug + State + Clone + Merge + PartialEq {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
             let mut writes : Vec<(CellID, T)>= Vec::new();

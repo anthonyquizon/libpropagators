@@ -23,7 +23,7 @@ impl<A> Default for Content<A> {
 impl<A> State for Content<A> {
     fn is_empty(&self) -> bool {
         match self {
-            Self::Contradiction => true,
+            Self::Nothing => true,
             _ => false
         }
     }

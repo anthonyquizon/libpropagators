@@ -13,9 +13,11 @@ impl Float {
 
 impl fmt::Debug for Float {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Float: ");
+
         match self {
             Self::Nothing => write!(f,"Nothing"),
-            Self::Value(val) => write!(f, "{:?}", val),
+            Self::Value(val) => write!(f, "{:?}", val.into_inner()),
             Self::Contradiction => write!(f, "Contradiction"),
         }
     }

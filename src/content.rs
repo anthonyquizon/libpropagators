@@ -42,7 +42,7 @@ impl<A: Clone> Content<A> {
             (Self::Nothing, Self::Nothing) => Self::Nothing,
             (Self::Value(val), Self::Nothing) => Self::Value(val.clone()),
             (Self::Nothing, Self::Value(val)) => Self::Value(val.clone()),
-            (Self::Value(a), Self::Value(b)) => f(a, b),
+            (Self::Value(a), Self::Value(b)) => f(&a, &b),
             (_, Self::Contradiction) => Self::Contradiction,
             (Self::Contradiction, _) => Self::Contradiction
         }

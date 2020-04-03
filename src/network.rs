@@ -55,6 +55,12 @@ impl<T> Network<T> {
         id
     }
 
+    pub fn alert_all_propagators(&mut self) {
+        for id in 0..self.propagators.len() - 1 {
+            self.alerted.insert(id);
+        }
+    }
+
     pub fn read_cell(&self, id: CellID) -> &T {
         self.cells[id].read()
     }

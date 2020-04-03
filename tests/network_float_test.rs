@@ -3,7 +3,7 @@ use propagators::content_float::Float;
 
 
 #[test]
-fn test_network_Float_read_write() {
+fn test_network_float_read_write() {
     let mut network : Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -18,7 +18,7 @@ fn test_network_Float_read_write() {
 
 
 #[test]
-fn test_network_Float_add() {
+fn test_network_float_add() {
     let mut network : Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -39,7 +39,7 @@ fn test_network_Float_add() {
 }
 
 #[test]
-fn test_network_Float_multiply() {
+fn test_network_float_multiply() {
     let mut network : Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -60,7 +60,7 @@ fn test_network_Float_multiply() {
 }
 
 #[test]
-fn test_network_Float_constraint_add() {
+fn test_network_float_constraint_add() {
     let mut network:Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -86,7 +86,7 @@ fn test_network_Float_constraint_add() {
 
 
 #[test]
-fn test_network_Float_constraint_product_a() {
+fn test_network_float_constraint_product_a() {
     let mut network:Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -108,7 +108,7 @@ fn test_network_Float_constraint_product_a() {
 
 
 #[test]
-fn test_network_Float_constraint_product_b() {
+fn test_network_float_constraint_product_b() {
     let mut network:Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -129,7 +129,7 @@ fn test_network_Float_constraint_product_b() {
 }
 
 #[test]
-fn test_network_Float_constraint_product_c() {
+fn test_network_float_constraint_product_c() {
     let mut network:Network<Float> = Network::new();
 
     let a = network.make_cell();
@@ -150,7 +150,7 @@ fn test_network_Float_constraint_product_c() {
 }
 
 #[test]
-fn test_network_Float_constraint_product_triangle_ratio() {
+fn test_network_float_constraint_product_triangle_ratio() {
     let mut network:Network<Float> = Network::new();
 
     let ratio = network.make_cell();
@@ -178,7 +178,7 @@ fn test_network_Float_constraint_product_triangle_ratio() {
 }
 
 #[test]
-fn test_network_Float_constraint_similar_triangles() {
+fn test_network_float_constraint_similar_triangles() {
     let mut network:Network<Float> = Network::new();
 
     let a = network.make_cell();

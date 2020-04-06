@@ -63,7 +63,6 @@ impl Mul for Float {
     }
 }
 
-
 impl Merge for Float {
     fn merge(&self, other: &Self) -> Self {
         Self::lift(self, other, |&a, &b| {

@@ -36,6 +36,15 @@ impl<A> State for Content<A> {
     }
 }
 
+impl<T> Content<T> {
+    pub fn map_or<U, F: FnOnce(&T) -> U>(&self, default: U, f: F) -> U {
+        match self {
+            Self::Value(val) => f(&val),
+            _ => default,
+        }
+    }
+}
+
 impl<A: Clone> Content<A> {
     pub fn lift<F: Fn(&A, &A) -> Self>(&self, other: &Self, f: F) -> Self {
         match (self, other) {

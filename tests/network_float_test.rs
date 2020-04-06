@@ -150,34 +150,6 @@ fn test_network_float_constraint_product_c() {
 }
 
 #[test]
-fn test_network_float_constraint_product_triangle_ratio() {
-    let mut network:Network<Float> = Network::new();
-
-    let ratio = network.make_cell();
-
-    let a = network.make_cell();
-    let b = network.make_cell();
-    let c = network.make_cell();
-    let d = network.make_cell();
-
-    network.write_cell(a, Float::new(2.));
-    network.write_cell(b, Float::new(4.));
-
-    network.write_cell(c, Float::new(3.));
-    network.write_cell(d, Float::new(6.));
-
-    network.constraint_product(a, ratio, b);
-    network.constraint_product(c, ratio, d);
-
-    network.run();
-
-    let expected = &Float::new(2.);
-    let actual = network.read_cell(ratio);
-    
-    assert_eq!(expected, actual);
-}
-
-#[test]
 fn test_network_float_constraint_similar_triangles() {
     let mut network:Network<Float> = Network::new();
 

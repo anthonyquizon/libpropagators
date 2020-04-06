@@ -8,13 +8,15 @@ use std::fmt::Debug;
 
 pub trait Premise: Clone + Hash + Ord + PartialOrd + PartialEq + Eq + Debug {}
 
+impl Premise for String {}
+
 #[derive(Clone)]
 pub struct TruthManagementSystem<T, U> {
     network: Rc<RefCell<Network<T>>>,
     invalid: HashSet<U>,
 }
 
-impl<T: Debug + Clone + PartialEq, U: Premise> TruthManagementSystem<T, U> {
+impl<T: Debug, U: Premise> TruthManagementSystem<T, U> {
     pub fn new(network: &Rc<RefCell<Network<T>>>) -> Self {
         Self {
             network: Rc::clone(network),
@@ -22,8 +24,8 @@ impl<T: Debug + Clone + PartialEq, U: Premise> TruthManagementSystem<T, U> {
         }
     }
 
-    pub fn premise_is_valid(&self, premise: U) -> bool {
-        !self.invalid.contains(&premise)
+    pub fn premise_is_valid(&self, premise: &U) -> bool {
+        !self.invalid.contains(premise)
     }
 
     pub fn kick_out_premise(&mut self, premise: U) {

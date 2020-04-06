@@ -30,6 +30,18 @@ impl<T: Debug + Hash + Eq + PartialEq, U: Premise> Debug for TruthManagementStor
     }
 }
 
+impl<T: Debug + Hash + Eq + PartialEq, U: Premise> PartialEq for TruthManagementStore<T, U> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Nothing, Self::Nothing) => true,
+            (Self::Value(a), Self::Value(b)) => {
+                a.supports == b.supports
+            }
+            _ => false,
+        }
+    }
+}
+
 impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManagementStore<T, U> {
     pub fn new(
         tms: &Rc<TruthManagementSystem<TruthManagementStore<T, U>, U>>, 
@@ -48,6 +60,91 @@ impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManageme
         };
 
         Self::Value(tms)
+    }
+
+    fn assimilate(&self, other: &Self) -> Self {
+        Self::lift(self, other, |a, b| {
+            let mut tms = a.clone();
+
+            for other_supported in b.supports.iter() {
+                // If you can get the same value from any of the current supports
+                // while only using a subset of the premises, ie. you require less 
+                // information to get to the same answer, then return the current tms
+                let any_subsumes = a.supports.iter().any(|supported| {
+                    supported.subsumes(&other_supported)
+                });
+
+                if !any_subsumes {
+                    // FIXME: remove cloned
+                    let mut supports : HashSet<Supported<T, U>>= a.supports
+                        .iter()
+                        .cloned()
+                        //NB: the subsumes objects are swapped compared to the any_subsumes clause
+                        .filter(|supported| !other_supported.subsumes(&supported))
+                        .collect();
+
+                    supports.insert(other_supported.clone());
+
+                    //FIXME remove cloned
+                    tms.supports = tms.supports.union(&supports).cloned().collect();
+                }
+            }
+
+            Self::Value(tms)
+        })
+    }
+
+    fn strongest_consequence(&self) -> Self {
+        Self::map(self, |tms| {
+            //FIXME: remove clone
+            let mut tms = tms.clone();
+            let supports = tms.supports.iter().fold(None, |acc, instance| {
+                match acc {
+                    None => Some(instance.clone()),
+                    Some(acc) => {
+                        let all_valid = instance.premises().map_or(false, |premises| {
+                            premises.iter().all(|premise| {
+                                tms.system.premise_is_valid(premise)
+                            })
+                        });
+
+                        if all_valid { Some(acc.merge(&instance)) }
+                        else { Some(acc) }
+                    }
+                }
+            }).unwrap();
+
+            tms.supports = HashSet::new();
+            tms.supports.insert(supports);
+
+            Self::Value(tms)
+        })
+    }
+
+    //pub fn query(&mut self) -> T {
+        //let answer = self.strongest_consequence();
+        //let better_tms = self.assimilate(&answer);
+
+        //if *self != better_tms { 
+            //self.supports = better_tms.supports;
+        //}
+
+        //// FIXME remove clone
+        //(*answer.value()).clone()
+    //}
+
+    //pub fn supports(&self) -> &HashSet<Supported<T, U>> {
+        //&self.supports
+    //}
+}
+impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> Merge for TruthManagementStore<T, U> {
+    fn merge(&self, other: &Self) -> Self {
+        let candidate = self.assimilate(&other);
+        let consequence = candidate.strongest_consequence();
+
+        //TODO check if contradiction
+
+        candidate.assimilate(&consequence)
     }
 }
 
@@ -76,27 +173,30 @@ impl<T: Hash + PartialEq + Eq + Clone + Add<Output = T>, U: Premise + Clone> Add
     }
 }
 
+impl<T: Debug + Clone + Merge + Hash + Eq + PartialEq + Sub<Output = T>, U: Premise> Sub for TruthManagementStore<T, U> {
+    type Output = TruthManagementStore<T, U>;
 
-//impl<A: Debug + Clone + Merge + Hash + Eq + PartialEq + Sub<Output = A>> Sub for TruthManagementStore<A> {
-    //type Output = TruthManagementStore<A>;
+    fn sub(self, other: Self) -> Self {
+        Self::lift(&self, &other, |a, b| {
+            let mut supports = HashSet::new();
 
-    //fn sub(self, other: Self) -> Self {
-        //let mut supports = HashSet::new();
+            for self_support in a.supports.iter() {
+                for other_support in b.supports.iter() {
+                    let support = (*self_support).clone() - (*other_support).clone();
 
-        //for self_support in self.supports.iter() {
-            //for other_support in other.supports.iter() {
-                //let support = (*self_support).clone() - (*other_support).clone();
-                
-                //supports.insert(support);
-            //}
-        //}
+                    supports.insert(support);
+                }
+            }
 
-        //Self {
-            //system: Rc::clone(&self.system),
-            //supports
-        //}
-    //}
-//}
+            let tms = TruthManagementStoreImpl {
+                system: Rc::clone(&a.system),
+                supports
+            };
+
+            Self::Value(tms)
+        })
+    }
+}
 
 ////impl<A: Mul<Output = A>> Mul for Supported<A> {
     ////type Output = Supported<A>;
@@ -139,97 +239,7 @@ impl<T: Hash + PartialEq + Eq + Clone + Add<Output = T>, U: Premise + Clone> Add
         //}
     //}
 
-    //fn from_supports(tms: &Rc<TruthManagementSystem<TruthManagementStore<A>>>, supports: HashSet<Supported<A>>) -> Self {
-        //Self {
-            //system: Rc::clone(tms),
-            //supports
-        //}
-    //}
 
-    //fn assimilate_many(&self, other_supports: &HashSet<Supported<A>>) -> Self {
-        //let mut tms = self.clone();
-
-        //for other_supported in other_supports.iter() {
-            //tms = tms.assimilate(other_supported);
-        //}
-
-        //tms
-    //}
-
-    //fn assimilate(&self, other_supported: &Supported<A>) -> Self {
-        //// If you can get the same value from any of the current supports
-        //// while only using a subset of the premises, ie. you require less 
-        //// information to get to the same answer, then return the current tms
-        //let any_subsumes = self.supports.iter().any(|supported| {
-            //supported.subsumes(&other_supported)
-        //});
-
-        //if any_subsumes {
-            //(*self).clone()
-        //}
-        //else {
-            //// FIXME: remove cloned
-            //let mut supports : HashSet<Supported<A>>= self.supports
-                //.iter()
-                //.cloned()
-                ////NB: the subsumes objects are swapped compared to the any_subsumes clause
-                //.filter(|supported| !other_supported.subsumes(&supported))
-                //.collect();
-
-            //let exists = supports
-                //.iter()
-                //.all(|supported| supported == other_supported);
-
-            //if !exists {
-                //supports.insert(other_supported.clone());
-            //}
-
-            //Self::from_supports(&self.system, supports)
-        //}
-    //}
-
-    //fn strongest_consequence(&self) -> Supported<A> {
-        //self.supports.iter().fold(None, |acc, instance| {
-            //match acc {
-                //None => Some(instance.clone()),
-                //Some(acc) => {
-                    //let all_valid = instance.premises().iter().all(|premise| {
-                        //self.system.premise_is_valid(premise.clone())
-                    //});
-
-                    //if all_valid { Some(acc.merge(&instance)) }
-                    //else { Some(acc) }
-                //}
-            //}
-        //}).unwrap()
-    //}
-
-    //pub fn query(&mut self) -> A {
-        //let answer = self.strongest_consequence();
-        //let better_tms = self.assimilate(&answer);
-
-        //if *self != better_tms { 
-            //self.supports = better_tms.supports;
-        //}
-
-        //// FIXME remove clone
-        //(*answer.value()).clone()
-    //}
-
-    //pub fn supports(&self) -> &HashSet<Supported<A>> {
-        //&self.supports
-    //}
 //}
 
 
-//impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, Premise> Merge for TruthManagementStore<T, Premise> {
-    ////TODO merge  
-    //fn merge(&self, other: &Self) -> Self {
-        //let candidate = self.assimilate_many(&other.supports);
-        //let consequence = candidate.strongest_consequence();
-
-        ////TODO check if contradiction
-
-        //candidate.assimilate(&consequence)
-    //}
-//}

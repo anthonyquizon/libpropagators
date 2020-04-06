@@ -45,8 +45,15 @@ impl<T> Content<T> {
     }
 }
 
-impl<A: Clone> Content<A> {
-    pub fn lift<F: Fn(&A, &A) -> Self>(&self, other: &Self, f: F) -> Self {
+impl<T: Clone> Content<T> {
+    pub fn map<F: FnOnce(&T) -> Self>(&self, f: F) -> Self {
+        match self {
+            Self::Value(val) => f(&val),
+            _ => self.clone(),
+        }
+    }
+
+    pub fn lift<F: Fn(&T, &T) -> Self>(&self, other: &Self, f: F) -> Self {
         match (self, other) {
             (Self::Nothing, Self::Nothing) => Self::Nothing,
             (Self::Value(val), Self::Nothing) => Self::Value(val.clone()),

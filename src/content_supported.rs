@@ -2,6 +2,7 @@ use std::hash::{Hash, Hasher};
 use crate::content::{ Content, Merge };
 use crate::tms::Premise;
 use std::ops::{ Add, Sub, Mul, Div };
+use std::iter;
 use std::fmt;
 use core::fmt::Debug;
 use std::collections::HashSet;
@@ -65,6 +66,13 @@ impl<T, U: Premise> Supported<T, U> {
         };
 
         Self::Value(value)
+    }
+
+    pub fn premises<'a>(&'a self) -> Option<&'a HashSet<U>> {
+        match self {
+            Self::Value(val) => Some(&val.premises),
+            _ => None
+        }
     }
 }
 

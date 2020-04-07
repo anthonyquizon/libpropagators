@@ -1,14 +1,14 @@
 use propagators::network::{ Network };
-use propagators::context_tms::TruthManagementSystem;
+use propagators::context_tms::TruthManagementContext;
 use propagators::content_tms::TruthManagementStore;
 use propagators::content_float::Float;
 use std::cell::RefCell;
-use std::rc::{Rc};
+use std::rc::Rc;
 
 #[test]
 fn test_network_tms_float_add() {
-    let mut tms_rc : Rc<TruthManagementSystem<String>> = Rc::new(TruthManagementSystem::new());
-    let mut network_rc : Rc<RefCell<Network<Rc<TruthManagementSystem<String>>, TruthManagementStore<Float, String>>>> = Rc::new(RefCell::new(Network::new(Rc::clone(&tms_rc))));
+    let mut tms_rc : Rc<TruthManagementContext<String>> = Rc::new(TruthManagementContext::new());
+    let mut network_rc : Rc<RefCell<Network<Rc<TruthManagementContext<String>>, TruthManagementStore<Float, String>>>> = Rc::new(RefCell::new(Network::new(Rc::clone(&tms_rc))));
     let mut network = network_rc.borrow_mut();
 
     let a = network.make_cell();

@@ -4,15 +4,15 @@ use crate::content::{Content, Merge};
 use crate::content_supported::Supported;
 use std::hash::Hash;
 use std::ops::{ Add, Sub, Mul, Div };
-use crate::context_tms::TruthManagementSystem;
+use crate::context_tms::TruthManagementContext;
 use crate::premise::Premise;
 use std::collections::HashSet;
 
-pub type TruthManagementStore<T, Premise> = Content<TruthManagementStoreImpl<T, Premise>>;
+pub type TruthManagementStore<T, U> = Content<TruthManagementStoreImpl<T, U>>;
 
 #[derive(Clone)]
 pub struct TruthManagementStoreImpl<T, U: Premise> {
-    context: Rc<TruthManagementSystem<U>>,
+    context: Rc<TruthManagementContext<U>>,
     supports: HashSet<Supported<T, U>>,
 }
 
@@ -45,7 +45,7 @@ impl<T: Debug + Hash + Eq + PartialEq, U: Premise> PartialEq for TruthManagement
 
 impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManagementStore<T, U> {
     pub fn new(
-        tms: &Rc<TruthManagementSystem<U>>, 
+        tms: &Rc<TruthManagementContext<U>>, 
         in_supports: &[(T, &[U])]
     ) -> Self {
         let mut supports : HashSet<Supported<T, U>> = HashSet::new();

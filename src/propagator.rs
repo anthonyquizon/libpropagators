@@ -2,6 +2,7 @@ use crate::content::State;
 use crate::util::CellID;
 
 pub enum Return<T> {
+    //Nothing
     Pure(T),
     AlertAllPropagators(T)
 }

@@ -14,15 +14,22 @@ pub enum Event {
     Unchanged
 }
 
+pub trait TruthManagementSystem {
+    type Premise;
+
+    fn kick_out_premise(&mut self, premise: Self::Premise) -> Event;
+    fn bring_in_premise(&mut self, premise: Self::Premise) -> Event;
+}
+
 #[derive(Clone)]
-pub struct TruthManagementSystem<T> {
+pub struct TruthManagementContext<T> {
     premise_outness: HashSet<T>,
     premise_nogoods: HashMap<T, Vec<T>>,
 }
 
-impl<T: Clone + Debug> Context for TruthManagementSystem<T> {}
+impl<T: Clone + Debug> Context for Rc<TruthManagementContext<T>> {}
 
-impl<T> fmt::Debug for TruthManagementSystem<T> {
+impl<T> fmt::Debug for TruthManagementContext<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Truth Management System")
 
@@ -30,7 +37,7 @@ impl<T> fmt::Debug for TruthManagementSystem<T> {
     }
 }
 
-impl<T: Premise> TruthManagementSystem<T> {
+impl<T: Premise> TruthManagementContext<T> {
     pub fn new() -> Self {
         Self {
             premise_outness: HashSet::new(),
@@ -45,8 +52,12 @@ impl<T: Premise> TruthManagementSystem<T> {
     pub fn reasons_against_premise(&self, premise: &T) -> Option<impl Iterator<Item=&T>> {
         self.premise_nogoods.get(premise).map(|vec| vec.iter())
     }
+}
 
-    pub fn kick_out_premise(&mut self, premise: T) -> Event {
+impl<T: Premise> TruthManagementSystem for TruthManagementContext<T> {
+    type Premise = T;
+
+    fn kick_out_premise(&mut self, premise: Self::Premise) -> Event {
         if self.premise_outness.contains(&premise) {
             self.premise_outness.remove(&premise);
             Event::Changed
@@ -56,7 +67,7 @@ impl<T: Premise> TruthManagementSystem<T> {
         }
     }
 
-    pub fn bring_in_premise(&mut self, premise: T) -> Event {
+    fn bring_in_premise(&mut self, premise: Self::Premise) -> Event {
         if !self.premise_outness.contains(&premise) {
             self.premise_outness.insert(premise);
             Event::Changed

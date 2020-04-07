@@ -1,4 +1,4 @@
-use crate::propagator::{Procedure};
+use crate::propagator::{Procedure, Return};
 use crate::util::{ CellID, PropagatorID };
 use crate::network::Network;
 use crate::context::Context;
@@ -8,7 +8,7 @@ use std::fmt::Debug;
 
 impl<C, T: Add<Output=T>> Network<C, T> {
     pub fn propagator_add(&mut self, a: CellID, b: CellID, c: CellID) {
-        let proc = Procedure::Binary(Box::new(|_, a: T, b: T| a + b));
+        let proc = Procedure::Binary(Box::new(|_, a: T, b: T| Return::Pure(a + b)));
 
         let id = self.make_propagator(proc, &[a, b], c);
 
@@ -18,7 +18,7 @@ impl<C, T: Add<Output=T>> Network<C, T> {
 
 impl<C, T: Sub<Output=T>> Network<C, T>  {
     pub fn propagator_subtract(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| a - b));
+        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a - b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
 
@@ -28,7 +28,7 @@ impl<C, T: Sub<Output=T>> Network<C, T>  {
 
 impl<C, T: Mul<Output=T>> Network<C, T> {
     pub fn propagator_multiply(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| a * b));
+        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a * b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
         
@@ -38,7 +38,7 @@ impl<C, T: Mul<Output=T>> Network<C, T> {
 
 impl<C, T: Div<Output=T>> Network<C, T> {
     pub fn propagator_divide(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| a / b));
+        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a / b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
 

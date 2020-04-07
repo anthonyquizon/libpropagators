@@ -4,7 +4,7 @@ use crate::content::{Content, Merge};
 use crate::content_supported::Supported;
 use std::hash::Hash;
 use std::ops::{ Add, Sub, Mul, Div };
-use crate::tms::TruthManagementSystem;
+use crate::context_tms::TruthManagementSystem;
 use crate::premise::Premise;
 use std::collections::HashSet;
 
@@ -12,7 +12,7 @@ pub type TruthManagementStore<T, Premise> = Content<TruthManagementStoreImpl<T, 
 
 #[derive(Clone)]
 pub struct TruthManagementStoreImpl<T, U: Premise> {
-    system: Rc<TruthManagementSystem<TruthManagementStore<T, U>, U>>,
+    context: Rc<TruthManagementSystem<U>>,
     supports: HashSet<Supported<T, U>>,
 }
 
@@ -45,7 +45,7 @@ impl<T: Debug + Hash + Eq + PartialEq, U: Premise> PartialEq for TruthManagement
 
 impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManagementStore<T, U> {
     pub fn new(
-        tms: &Rc<TruthManagementSystem<TruthManagementStore<T, U>, U>>, 
+        tms: &Rc<TruthManagementSystem<U>>, 
         in_supports: &[(T, &[U])]
     ) -> Self {
         let mut supports : HashSet<Supported<T, U>> = HashSet::new();
@@ -56,7 +56,7 @@ impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManageme
         }
 
         let tms = TruthManagementStoreImpl {
-            system: Rc::clone(tms),
+            context: Rc::clone(tms),
             supports
         };
 
@@ -105,7 +105,7 @@ impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManageme
                     Some(acc) => {
                         let all_valid = instance.premises().map_or(false, |premises| {
                             premises.iter().all(|premise| {
-                                tms.system.premise_in(premise)
+                                tms.context.premise_in(premise)
                             })
                         });
 
@@ -169,7 +169,7 @@ impl<T: Hash + PartialEq + Eq + Clone + Add<Output = T>, U: Premise + Clone> Add
             }
 
             let tms = TruthManagementStoreImpl {
-                system: Rc::clone(&a.system),
+                context: Rc::clone(&a.context),
                 supports
             };
 
@@ -194,7 +194,7 @@ impl<T: Debug + Clone + Merge + Hash + Eq + PartialEq + Sub<Output = T>, U: Prem
             }
 
             let tms = TruthManagementStoreImpl {
-                system: Rc::clone(&a.system),
+                context: Rc::clone(&a.context),
                 supports
             };
 
@@ -239,7 +239,7 @@ impl<T: Debug + Clone + Merge + Hash + Eq + PartialEq + Sub<Output = T>, U: Prem
         //}
 
         //Self {
-            //system: Rc::clone(tms),
+            //context: Rc::clone(tms),
             //supports: supports
         //}
     //}

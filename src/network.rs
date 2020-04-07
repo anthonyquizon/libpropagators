@@ -1,6 +1,6 @@
 use crate::cell::Cell;
 use crate::content::{ State, Merge };
-use crate::propagator::{Propagator, Procedure};
+use crate::propagator::{Propagator, Procedure, Return};
 use crate::util::{CellID, PropagatorID};
 use std::fmt::Debug;
 
@@ -94,7 +94,7 @@ impl<C, T> Network<C, T>
 where T: Debug + State + Clone + Merge + PartialEq {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
-            let mut writes : Vec<(CellID, T)>= Vec::new();
+            let mut writes : Vec<(CellID, Return<T>)> = Vec::new();
 
             for &propagator_id in self.alerted.iter() {
                 let propagator = &self.propagators[propagator_id];
@@ -111,7 +111,13 @@ where T: Debug + State + Clone + Merge + PartialEq {
             self.alerted.clear();
 
             writes.drain(0..).for_each(|(output_id, output)| {
-                self.write_cell(output_id, output);
+                match output {
+                    Return::Pure(output) => self.write_cell(output_id, output),
+                    Return::AlertAllPropagators(output) => {
+                        self.write_cell(output_id, output);
+                        self.alert_all_propagators();
+                    },
+                }
             });
         }
     }

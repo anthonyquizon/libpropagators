@@ -1,9 +1,14 @@
 use crate::content::State;
 use crate::util::CellID;
 
+pub enum Return<T> {
+    Pure(T),
+    AlertAllPropagators(T)
+}
+
 pub enum Procedure<C, T> {
-    Unary(Box<dyn Fn(&C, T) -> T>),
-    Binary(Box<dyn Fn(&C, T, T) -> T>),
+    Unary(Box<dyn Fn(&C, T) -> Return<T>>),
+    Binary(Box<dyn Fn(&C, T, T) -> Return<T>>),
     //Ternary(Fn(&C, T, T, T) -> T),
 }
 
@@ -27,7 +32,7 @@ impl<C,  T> Propagator<C, T> {
 
 //FIXME: remove clone
 impl<C, T: Clone + State> Propagator<C, T> {
-    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, context: &C, read: F) -> Option<(CellID, T)> {
+    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, context: &C, read: F) -> Option<(CellID, Return<T>)> {
         let inputs : Vec<T> = self.inputs
             .iter()
             .map(read)

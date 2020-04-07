@@ -1,10 +1,10 @@
-pub mod tms;
 pub mod propagator;
 pub mod network;
 pub mod network_arithmatic;
 pub mod network_search;
 pub mod premise;
 pub mod context;
+pub mod context_tms;
 pub mod cell;
 //pub mod cell_usize;
 //pub mod cell_interval;

@@ -4,9 +4,8 @@ use crate::content::{Content, Merge};
 use crate::content_supported::Supported;
 use std::hash::Hash;
 use std::ops::{ Add, Sub, Mul, Div };
-use crate::tms::{TruthManagementSystem, TMSContext};
+use crate::tms::TruthManagementSystem;
 use crate::premise::Premise;
-use crate::context::Context;
 use std::collections::HashSet;
 
 pub type TruthManagementStore<T, Premise> = Content<TruthManagementStoreImpl<T, Premise>>;

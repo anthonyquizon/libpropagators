@@ -7,18 +7,29 @@ use std::fmt::Debug;
 use std::collections::HashSet;
 
 #[derive(Default)]
-pub struct Network<T> {
+pub struct Network<C, T> {
     cells: Vec<Cell<T>>,
-    propagators: Vec<Propagator<T>>,
+    propagators: Vec<Propagator<C, T>>,
+
+    context: C,
 
     alerted: HashSet<PropagatorID>
 }
 
-impl<T: Default> Network<T> {
-    pub fn new() -> Self {
-        Self::default()
-    }
+impl<C, T> Network<C, T> {
+    pub fn new(context: C) -> Self {
+        Self {
+            cells: Vec::new(),
+            propagators: Vec::new(),
+            
+            context,
 
+            alerted: HashSet::new()
+        }
+    }
+}
+
+impl<C, T: Default> Network<C, T> {
     pub fn make_cell(&mut self) -> CellID {
         let cell = Cell::new();
 
@@ -30,7 +41,7 @@ impl<T: Default> Network<T> {
     }
 }
 
-impl<T> Network<T> {
+impl<C, T> Network<C, T> {
     pub fn label_cell(&mut self, id: CellID, label: &str) {
         self.cells[id].label = String::from(label);
     }
@@ -39,7 +50,7 @@ impl<T> Network<T> {
         self.propagators[id].label = String::from(label);
     }
 
-    pub fn make_propagator(&mut self, proc: Procedure<T>, inputs: &[CellID], output: CellID) -> PropagatorID {
+    pub fn make_propagator(&mut self, proc: Procedure<C, T>, inputs: &[CellID], output: CellID) -> PropagatorID {
         let propagator = Propagator::new(proc, inputs, output);
 
         self.propagators.push(propagator);
@@ -66,7 +77,7 @@ impl<T> Network<T> {
     }
 }
 
-impl<T: Debug + Merge + PartialEq> Network<T> {
+impl<C, T: Debug + Merge + PartialEq> Network<C, T> {
     pub fn write_cell(&mut self, id: CellID, value: T) {
         let cell = &mut self.cells[id];
         let alerted = cell.write(value);
@@ -79,7 +90,7 @@ impl<T: Debug + Merge + PartialEq> Network<T> {
     }
 }
 
-impl<T> Network<T> 
+impl<C, T> Network<C, T> 
 where T: Debug + State + Clone + Merge + PartialEq {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
@@ -88,7 +99,7 @@ where T: Debug + State + Clone + Merge + PartialEq {
             for &propagator_id in self.alerted.iter() {
                 let propagator = &self.propagators[propagator_id];
 
-                let write_val = propagator.invoke(|&cell_id| {
+                let write_val = propagator.invoke(&self.context, |&cell_id| {
                     self.cells[cell_id].read()
                 });
 

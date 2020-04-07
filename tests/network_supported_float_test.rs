@@ -1,10 +1,11 @@
 use propagators::network::Network;
+use propagators::context::EmptyContext;
 use propagators::content_float::Float;
 use propagators::content_supported::Supported;
 
 #[test]
 fn test_network_supported_float_add() {
-    let mut network : Network<Supported<Float, String>> = Network::new();
+    let mut network : Network<EmptyContext, Supported<Float, String>> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -35,7 +36,7 @@ fn test_network_supported_float_add() {
 
 #[test]
 fn test_network_supported_float_constraint_add() {
-    let mut network:Network<Supported<Float, String>> = Network::new();
+    let mut network:Network<EmptyContext, Supported<Float, String>> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -66,7 +67,7 @@ fn test_network_supported_float_constraint_add() {
 
 #[test]
 fn test_network_supported_float_constraint_triangle() {
-    let mut network:Network<Supported<Float, String>> = Network::new();
+    let mut network:Network<EmptyContext, Supported<Float, String>> = Network::new(EmptyContext());
 
     let ratio = network.make_cell();
 

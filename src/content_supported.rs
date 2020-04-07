@@ -1,8 +1,7 @@
 use std::hash::{Hash, Hasher};
 use crate::content::{ Content, Merge };
-use crate::tms::Premise;
+use crate::premise::Premise;
 use std::ops::{ Add, Sub, Mul, Div };
-use std::iter;
 use std::fmt;
 use core::fmt::Debug;
 use std::collections::HashSet;

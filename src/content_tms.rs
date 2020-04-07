@@ -2,9 +2,11 @@ use std::rc::{Rc};
 use std::fmt::{Debug, Formatter, Result};
 use crate::content::{Content, Merge};
 use crate::content_supported::Supported;
-use std::hash::{Hash};
+use std::hash::Hash;
 use std::ops::{ Add, Sub, Mul, Div };
-use crate::tms::{ TruthManagementSystem, Premise };
+use crate::tms::{TruthManagementSystem, TMSContext};
+use crate::premise::Premise;
+use crate::context::Context;
 use std::collections::HashSet;
 
 pub type TruthManagementStore<T, Premise> = Content<TruthManagementStoreImpl<T, Premise>>;
@@ -15,7 +17,7 @@ pub struct TruthManagementStoreImpl<T, U: Premise> {
     supports: HashSet<Supported<T, U>>,
 }
 
-impl<T: Debug + Hash + Eq + PartialEq, U: Premise> Debug for TruthManagementStore<T, U> {
+impl<T: Debug + Hash + Eq + PartialEq, U: Premise> Debug for TruthManagementStore< T, U> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f,"TruthManagementStore::");
 
@@ -104,7 +106,7 @@ impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManageme
                     Some(acc) => {
                         let all_valid = instance.premises().map_or(false, |premises| {
                             premises.iter().all(|premise| {
-                                tms.system.premise_is_valid(premise)
+                                tms.system.premise_in(premise)
                             })
                         });
 
@@ -120,6 +122,10 @@ impl<T: Debug + Clone + Merge + PartialEq + Eq + Hash, U: Premise> TruthManageme
             Self::Value(tms)
         })
     }
+
+    //pub fn check_consistent(&self) -> bool {
+        //match 
+    //}
 
     //pub fn query(&mut self) -> T {
         //let answer = self.strongest_consequence();

@@ -1,10 +1,11 @@
 use propagators::network::Network;
+use propagators::context::EmptyContext;
 use propagators::content_float::Float;
 
 
 #[test]
 fn test_network_float_read_write() {
-    let mut network : Network<Float> = Network::new();
+    let mut network : Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     network.write_cell(a, Float::new(1.));
@@ -19,7 +20,7 @@ fn test_network_float_read_write() {
 
 #[test]
 fn test_network_float_add() {
-    let mut network : Network<Float> = Network::new();
+    let mut network : Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -40,7 +41,7 @@ fn test_network_float_add() {
 
 #[test]
 fn test_network_float_multiply() {
-    let mut network : Network<Float> = Network::new();
+    let mut network : Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -61,7 +62,7 @@ fn test_network_float_multiply() {
 
 #[test]
 fn test_network_float_constraint_add() {
-    let mut network:Network<Float> = Network::new();
+    let mut network:Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -87,7 +88,7 @@ fn test_network_float_constraint_add() {
 
 #[test]
 fn test_network_float_constraint_product_a() {
-    let mut network:Network<Float> = Network::new();
+    let mut network:Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -109,7 +110,7 @@ fn test_network_float_constraint_product_a() {
 
 #[test]
 fn test_network_float_constraint_product_b() {
-    let mut network:Network<Float> = Network::new();
+    let mut network:Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -130,7 +131,7 @@ fn test_network_float_constraint_product_b() {
 
 #[test]
 fn test_network_float_constraint_product_c() {
-    let mut network:Network<Float> = Network::new();
+    let mut network:Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();
@@ -151,7 +152,7 @@ fn test_network_float_constraint_product_c() {
 
 #[test]
 fn test_network_float_constraint_similar_triangles() {
-    let mut network:Network<Float> = Network::new();
+    let mut network:Network<EmptyContext, Float> = Network::new(EmptyContext());
 
     let a = network.make_cell();
     let b = network.make_cell();

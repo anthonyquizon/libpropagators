@@ -1,21 +1,21 @@
-use crate::util::CellID;
 use crate::content::State;
+use crate::util::CellID;
 
-pub enum Procedure<T> {
-    Unary(fn(T) -> T),
-    Binary(fn(T, T) -> T),
-    Ternary(fn(T, T, T) -> T),
+pub enum Procedure<C, T> {
+    Unary(Box<dyn Fn(&C, T) -> T>),
+    Binary(Box<dyn Fn(&C, T, T) -> T>),
+    //Ternary(Fn(&C, T, T, T) -> T),
 }
 
-pub struct Propagator<T> {
+pub struct Propagator<C, T> {
     pub label: String,
-    procedure: Procedure<T>,
+    procedure: Procedure<C, T>,
     inputs: Vec<CellID>,
     output: CellID
 }
 
-impl<T> Propagator<T> {
-    pub fn new(procedure: Procedure<T>, inputs: &[CellID], output: CellID) -> Self {
+impl<C,  T> Propagator<C, T> {
+    pub fn new(procedure: Procedure<C, T>, inputs: &[CellID], output: CellID) -> Self {
         Self {
             label: String::from(""),
             procedure,
@@ -26,8 +26,8 @@ impl<T> Propagator<T> {
 }
 
 //FIXME: remove clone
-impl<T: Clone + State> Propagator<T> {
-    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, read: F) -> Option<(CellID, T)> {
+impl<C, T: Clone + State> Propagator<C, T> {
+    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, context: &C, read: F) -> Option<(CellID, T)> {
         let inputs : Vec<T> = self.inputs
             .iter()
             .map(read)
@@ -41,21 +41,23 @@ impl<T: Clone + State> Propagator<T> {
         //FIXME: remove clones
         let output = match &self.procedure {
             Procedure::Unary(proc) => {
-                proc(inputs[0].clone())
+                proc(context, inputs[0].clone())
             },
             Procedure::Binary(proc) => {
                 proc(
+                    context,
                     inputs[0].clone(), 
                     inputs[1].clone()
                 )
             },
-            Procedure::Ternary(proc) => {
-                proc(
-                    inputs[0].clone(), 
-                    inputs[1].clone(),
-                    inputs[2].clone()
-                )
-            }
+            //Procedure::Ternary(proc) => {
+                //proc(
+                    //context,
+                    //inputs[0].clone(), 
+                    //inputs[1].clone(),
+                    //inputs[2].clone()
+                //)
+            //}
         };
 
         Some((self.output, output))

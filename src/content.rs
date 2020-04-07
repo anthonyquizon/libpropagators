@@ -24,6 +24,7 @@ impl<A> State for Content<A> {
     fn is_empty(&self) -> bool {
         match self {
             Self::Nothing => true,
+            //TODO if val is nothing
             _ => false
         }
     }
@@ -31,10 +32,12 @@ impl<A> State for Content<A> {
     fn is_contradiction(&self) -> bool {
         match self {
             Self::Contradiction => true,
+            //TODO if val is contradiction
             _ => false
         }
     }
 }
+
 
 impl<T> Content<T> {
     pub fn map_or<U, F: FnOnce(&T) -> U>(&self, default: U, f: F) -> U {

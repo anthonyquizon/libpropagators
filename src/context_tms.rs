@@ -1,6 +1,7 @@
 use crate::network::{ Network };
 use crate::premise::Premise;
 use crate::context::Context;
+use crate::util::CellID;
 use std::collections::HashSet;
 use std::collections::HashMap;
 use std::rc::{Rc, Weak};
@@ -10,13 +11,13 @@ use std::fmt::Debug;
 
 
 pub enum Action {
-    AmbChoose
+    AmbChoose(CellID)
 }
 
 #[derive(Clone)]
 pub struct TruthManagementContext<T> {
     premise_outness: HashSet<T>,
-    premise_nogoods: HashMap<T, Vec<T>>,
+    premise_nogoods: HashMap<T, Vec<(T, T)>>,
 }
 
 impl<T> fmt::Debug for TruthManagementContext<T> {
@@ -39,9 +40,11 @@ impl<T: Premise> TruthManagementContext<T> {
         !self.premise_outness.contains(premise)
     }
 
-    pub fn reasons_against_premise(&self, premise: &T) -> Option<impl Iterator<Item=&T>> {
-        self.premise_nogoods.get(premise).map(|vec| vec.iter())
-    }
+    //fn pairwise_union() {
+        //let mut vec = Vec:new();
+
+        //for 
+    //}
 }
 
 impl<T: Premise> Context for TruthManagementContext<T> {
@@ -49,7 +52,21 @@ impl<T: Premise> Context for TruthManagementContext<T> {
 
     fn run_action(&mut self, action: Self::Action) {
         match action {
-            Action::AmbChoose => {
+            Action::AmbChoose(cell_id) => {
+                let true_premise : T = Premise::make_hypothetical(true, cell_id);
+                let false_premise : T = Premise::make_hypothetical(false, cell_id);
+
+                let true_no_goods = self.premise_nogoods.get(&true_premise);
+                let false_no_goods = self.premise_nogoods.get(&false_premise);
+
+                let reasons_agains_true = match true_no_goods {
+                    Some(no_goods) => {
+                        no_goods.iter().filter(|premises| {
+                            true
+                        }).collect()
+                    },
+                    None => Vec::new()
+                };
             }
         }
     }

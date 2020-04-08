@@ -6,9 +6,9 @@ use std::ops::{ Add, Sub, Mul, Div };
 use std::fmt::Debug;
 
 
-impl<C, T: Add<Output=T>> Network<C, T> {
+impl<C: Context, T: Add<Output=T>> Network<C, T> {
     pub fn propagator_add(&mut self, a: CellID, b: CellID, c: CellID) {
-        let proc = Procedure::Binary(Box::new(|_, a: T, b: T| Return::Pure(a + b)));
+        let proc = Procedure::Binary(Box::new(|a: T, b: T| Return::Pure(a + b)));
 
         let id = self.make_propagator(proc, &[a, b], c);
 
@@ -16,9 +16,9 @@ impl<C, T: Add<Output=T>> Network<C, T> {
     }
 }
 
-impl<C, T: Sub<Output=T>> Network<C, T>  {
+impl<C: Context, T: Sub<Output=T>> Network<C, T>  {
     pub fn propagator_subtract(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a - b)));
+        let prop = Procedure::Binary(Box::new(|a, b| Return::Pure(a - b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
 
@@ -26,9 +26,9 @@ impl<C, T: Sub<Output=T>> Network<C, T>  {
     }
 }
 
-impl<C, T: Mul<Output=T>> Network<C, T> {
+impl<C: Context, T: Mul<Output=T>> Network<C, T> {
     pub fn propagator_multiply(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a * b)));
+        let prop = Procedure::Binary(Box::new(|a, b| Return::Pure(a * b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
         
@@ -36,9 +36,9 @@ impl<C, T: Mul<Output=T>> Network<C, T> {
     }
 }
 
-impl<C, T: Div<Output=T>> Network<C, T> {
+impl<C: Context, T: Div<Output=T>> Network<C, T> {
     pub fn propagator_divide(&mut self, a: CellID, b: CellID, c: CellID) {
-        let prop = Procedure::Binary(Box::new(|_, a, b| Return::Pure(a / b)));
+        let prop = Procedure::Binary(Box::new(|a, b| Return::Pure(a / b)));
 
         let id = self.make_propagator(prop, &[a, b], c);
 
@@ -46,7 +46,7 @@ impl<C, T: Div<Output=T>> Network<C, T> {
     }
 }
 
-impl<C, T: Add<Output=T> + Sub<Output=T>> Network<C, T> {
+impl<C: Context, T: Add<Output=T> + Sub<Output=T>> Network<C, T> {
     pub fn constraint_add(&mut self, a: CellID, b: CellID, c: CellID) {
         self.propagator_add(a, b, c);
         self.propagator_subtract(c, a, b);
@@ -54,7 +54,7 @@ impl<C, T: Add<Output=T> + Sub<Output=T>> Network<C, T> {
     }
 }
 
-impl<C, T: Mul<Output=T> + Div<Output=T>> Network<C, T> {
+impl<C: Context, T: Mul<Output=T> + Div<Output=T>> Network<C, T> {
     pub fn constraint_product(&mut self, a: CellID, b: CellID, c: CellID) {
         self.propagator_multiply(a, b, c);
         self.propagator_divide(c, a, b);

@@ -2,12 +2,13 @@ use crate::cell::Cell;
 use crate::content::{ State, Merge };
 use crate::propagator::{Propagator, Procedure, Return};
 use crate::util::{CellID, PropagatorID};
+use crate::context::Context;
 use std::fmt::Debug;
 
 use std::collections::HashSet;
 
 #[derive(Default)]
-pub struct Network<C, T> {
+pub struct Network<C: Context, T> {
     cells: Vec<Cell<T>>,
     propagators: Vec<Propagator<C, T>>,
 
@@ -16,7 +17,7 @@ pub struct Network<C, T> {
     alerted: HashSet<PropagatorID>
 }
 
-impl<C, T> Network<C, T> {
+impl<C: Context, T> Network<C, T> {
     pub fn new(context: C) -> Self {
         Self {
             cells: Vec::new(),
@@ -29,7 +30,7 @@ impl<C, T> Network<C, T> {
     }
 }
 
-impl<C, T: Default> Network<C, T> {
+impl<C: Context, T: Default> Network<C, T> {
     pub fn make_cell(&mut self) -> CellID {
         let cell = Cell::new();
 
@@ -41,7 +42,7 @@ impl<C, T: Default> Network<C, T> {
     }
 }
 
-impl<C, T> Network<C, T> {
+impl<C: Context, T> Network<C, T> {
     pub fn label_cell(&mut self, id: CellID, label: &str) {
         self.cells[id].label = String::from(label);
     }
@@ -77,7 +78,7 @@ impl<C, T> Network<C, T> {
     }
 }
 
-impl<C, T: Debug + Merge + PartialEq> Network<C, T> {
+impl<C: Context, T: Debug + Merge + PartialEq> Network<C, T> {
     pub fn write_cell(&mut self, id: CellID, value: T) {
         let cell = &mut self.cells[id];
         let alerted = cell.write(value);
@@ -90,16 +91,16 @@ impl<C, T: Debug + Merge + PartialEq> Network<C, T> {
     }
 }
 
-impl<C, T> Network<C, T> 
+impl<C: Context, T> Network<C, T> 
 where T: Debug + State + Clone + Merge + PartialEq {
     pub fn run(&mut self) {
         while self.alerted.len() > 0 {
-            let mut writes : Vec<(CellID, Return<T>)> = Vec::new();
+            let mut writes : Vec<(CellID, Return<C, T>)> = Vec::new();
 
             for &propagator_id in self.alerted.iter() {
                 let propagator = &self.propagators[propagator_id];
 
-                let write_val = propagator.invoke(&self.context, |&cell_id| {
+                let write_val = propagator.invoke(|&cell_id| {
                     self.cells[cell_id].read()
                 });
 
@@ -113,8 +114,9 @@ where T: Debug + State + Clone + Merge + PartialEq {
             writes.drain(0..).for_each(|(output_id, output)| {
                 match output {
                     Return::Pure(output) => self.write_cell(output_id, output),
-                    Return::AlertAllPropagators(output) => {
-                        self.write_cell(output_id, output);
+                    Return::Action(action) => {
+                        self.context.run_action(action);
+
                         self.alert_all_propagators();
                     },
                 }

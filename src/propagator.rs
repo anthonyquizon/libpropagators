@@ -1,26 +1,28 @@
 use crate::content::State;
 use crate::util::CellID;
+use crate::context::Context;
 
-pub enum Return<T> {
-    //Nothing
+pub enum Return<C: Context, T> {
     Pure(T),
-    AlertAllPropagators(T)
+    Action(C::Action),
+    //TODO action with output
 }
 
-pub enum Procedure<C, T> {
-    Unary(Box<dyn Fn(&C, T) -> Return<T>>),
-    Binary(Box<dyn Fn(&C, T, T) -> Return<T>>),
+pub enum Procedure<C: Context, T> {
+    Nullary(Box<dyn Fn() -> Return<C, T>>),
+    Unary(Box<dyn Fn(T) -> Return<C, T>>),
+    Binary(Box<dyn Fn(T, T) -> Return<C, T>>),
     //Ternary(Fn(&C, T, T, T) -> T),
 }
 
-pub struct Propagator<C, T> {
+pub struct Propagator<C: Context, T> {
     pub label: String,
     procedure: Procedure<C, T>,
     inputs: Vec<CellID>,
     output: CellID
 }
 
-impl<C,  T> Propagator<C, T> {
+impl<C: Context,  T> Propagator<C, T> {
     pub fn new(procedure: Procedure<C, T>, inputs: &[CellID], output: CellID) -> Self {
         Self {
             label: String::from(""),
@@ -32,8 +34,8 @@ impl<C,  T> Propagator<C, T> {
 }
 
 //FIXME: remove clone
-impl<C, T: Clone + State> Propagator<C, T> {
-    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, context: &C, read: F) -> Option<(CellID, Return<T>)> {
+impl<C: Context, T: Clone + State> Propagator<C, T> {
+    pub fn invoke<'a, F: Fn(&CellID) -> &'a T>(&'a self, read: F) -> Option<(CellID, Return<C, T>)> {
         let inputs : Vec<T> = self.inputs
             .iter()
             .map(read)
@@ -46,12 +48,14 @@ impl<C, T: Clone + State> Propagator<C, T> {
 
         //FIXME: remove clones
         let output = match &self.procedure {
+            Procedure::Nullary(proc) => {
+                proc()
+            },
             Procedure::Unary(proc) => {
-                proc(context, inputs[0].clone())
+                proc(inputs[0].clone())
             },
             Procedure::Binary(proc) => {
                 proc(
-                    context,
                     inputs[0].clone(), 
                     inputs[1].clone()
                 )

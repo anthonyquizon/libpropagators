@@ -9,16 +9,8 @@ use std::fmt;
 use std::fmt::Debug;
 
 
-pub enum Event {
-    Changed,
-    Unchanged
-}
-
-pub trait TruthManagementSystem {
-    type Premise;
-
-    fn kick_out_premise(&mut self, premise: Self::Premise) -> Event;
-    fn bring_in_premise(&mut self, premise: Self::Premise) -> Event;
+pub enum Action {
+    AmbChoose
 }
 
 #[derive(Clone)]
@@ -26,8 +18,6 @@ pub struct TruthManagementContext<T> {
     premise_outness: HashSet<T>,
     premise_nogoods: HashMap<T, Vec<T>>,
 }
-
-impl<T: Clone + Debug> Context for Rc<TruthManagementContext<T>> {}
 
 impl<T> fmt::Debug for TruthManagementContext<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -54,26 +44,14 @@ impl<T: Premise> TruthManagementContext<T> {
     }
 }
 
-impl<T: Premise> TruthManagementSystem for TruthManagementContext<T> {
-    type Premise = T;
+impl<T: Premise> Context for TruthManagementContext<T> {
+    type Action = Action;
 
-    fn kick_out_premise(&mut self, premise: Self::Premise) -> Event {
-        if self.premise_outness.contains(&premise) {
-            self.premise_outness.remove(&premise);
-            Event::Changed
-        }
-        else {
-            Event::Unchanged
+    fn run_action(&mut self, action: Self::Action) {
+        match action {
+            Action::AmbChoose => {
+            }
         }
     }
 
-    fn bring_in_premise(&mut self, premise: Self::Premise) -> Event {
-        if !self.premise_outness.contains(&premise) {
-            self.premise_outness.insert(premise);
-            Event::Changed
-        }
-        else {
-            Event::Unchanged
-        }
-    }
 }

@@ -1,34 +1,28 @@
-use crate::network::{ Network };
-use crate::premise::Premise;
 use crate::context::Context;
-use crate::util::CellID;
 use std::collections::HashSet;
 use std::collections::HashMap;
-use std::rc::{Rc, Weak};
-use std::cell::RefCell;
 use std::fmt;
 use std::fmt::Debug;
 
 
-pub enum Action {
-    AmbChoose(CellID)
+pub enum Action<Premise> {
+    AmbChoose(Premise, Premise)
 }
 
 #[derive(Clone)]
-pub struct TruthManagementContext<T> {
-    premise_outness: HashSet<T>,
-    premise_nogoods: HashMap<T, Vec<(T, T)>>,
+pub struct TruthManagementContext<Premise> {
+    premise_outness: HashSet<Premise>,
+    premise_nogoods: HashMap<Premise, Vec<(Premise, Premise)>>,
 }
 
-impl<T> fmt::Debug for TruthManagementContext<T> {
+impl<Premise: Debug> fmt::Debug for TruthManagementContext<Premise> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Truth Management System")
-
         //TODO premises
     }
 }
 
-impl<T: Premise> TruthManagementContext<T> {
+impl<Premise> TruthManagementContext<Premise> {
     pub fn new() -> Self {
         Self {
             premise_outness: HashSet::new(),
@@ -36,28 +30,19 @@ impl<T: Premise> TruthManagementContext<T> {
         }
     }
 
-    pub fn premise_in(&self, premise: &T) -> bool {
+    pub fn premise_in(&self, premise: &Premise) -> bool {
         !self.premise_outness.contains(premise)
     }
-
-    //fn pairwise_union() {
-        //let mut vec = Vec:new();
-
-        //for 
-    //}
 }
 
-impl<T: Premise> Context for TruthManagementContext<T> {
-    type Action = Action;
+impl<Premise> Context for TruthManagementContext<Premise> {
+    type Action = Action<Premise>;
 
     fn run_action(&mut self, action: Self::Action) {
         match action {
-            Action::AmbChoose(cell_id) => {
-                let true_premise : T = Premise::make_hypothetical(true, cell_id);
-                let false_premise : T = Premise::make_hypothetical(false, cell_id);
-
-                let true_no_goods = self.premise_nogoods.get(&true_premise);
-                let false_no_goods = self.premise_nogoods.get(&false_premise);
+            Action::AmbChoose(a, b) => {
+                let true_no_goods = self.premise_nogoods.get(&a);
+                let false_no_goods = self.premise_nogoods.get(&b);
 
                 let reasons_agains_true = match true_no_goods {
                     Some(no_goods) => {

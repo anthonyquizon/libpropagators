@@ -6,7 +6,6 @@ use std::fmt;
 use core::fmt::Debug;
 use std::collections::HashSet;
 
-
 pub type Supported<T, U> = Content<SupportedImpl<T, U>>;
 
 #[derive(Clone, PartialEq, Eq)]

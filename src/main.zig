@@ -1,11 +1,15 @@
 const std = @import("std");
-const cell = @import("cell");
 const testing = std.testing;
+const Allocator = std.mem.Allocator;
+const Cell = @import("cell.zig").Cell;
+const Float = @import("cell_float.zig").Float;
 
-export fn add(a: i32, b: i32) i32 {
-    return a + b;
-}
+test "init" {
+    const allocator = std.heap.direct_allocator;
+    var a = Float.init();
 
-test "basic add functionality" {
-    testing.expect(add(3, 7) == 10);
+    a.write(1.0);
+    a.write(2.0);
+
+    testing.expect(a.read() == null);
 }

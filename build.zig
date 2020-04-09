@@ -2,7 +2,7 @@ const Builder = @import("std").build.Builder;
 
 pub fn build(b: *Builder) void {
     const mode = b.standardReleaseOptions();
-    const lib = b.addStaticLibrary("libpropagator_networks", "src/main.zig");
+    const lib = b.addStaticLibrary("libpropagator", "src/main.zig");
     lib.setBuildMode(mode);
     lib.install();
 

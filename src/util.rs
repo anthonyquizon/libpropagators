@@ -1,5 +1,3 @@
 
-
-pub type CellID = usize;
-pub type PropagatorID = usize;
-
+pub const propagator_id = usize;
+pub const cell_id = usize;

@@ -1,3 +1,5 @@
 /target
 Cargo.lock
 __refs__/
+
+zig-cache/

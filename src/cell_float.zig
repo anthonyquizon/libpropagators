@@ -2,6 +2,7 @@ const std = @import("std");
 const Cell = @import("cell.zig").Cell;
 
 
+//FIXME equality checks
 pub fn merge(a: f64, b: f64) ?f64 {
   return if (a == b) a else null;
 }

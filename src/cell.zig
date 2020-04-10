@@ -2,13 +2,13 @@ const std = @import("std");
 const propagator_id = @import("util.zig").propagator_id;
 
 pub fn Cell(comptime T: type, merge: fn(T, T) ?T) type {
-    const Content = union(enum) {
-      Nothing,
-      Value: T,
-      Contradiction,
-    };
-
     return struct {
+        pub const Content = union(enum) {
+          Nothing,
+          Value: T,
+          Contradiction,
+        };
+
         const Self = @This();
 
         name: []const u8,
@@ -23,11 +23,8 @@ pub fn Cell(comptime T: type, merge: fn(T, T) ?T) type {
             };
         }
 
-        pub fn read(self: *Self) ?T {
-            return switch (self.content) {
-                .Value => |val| val,
-                else => null
-            };
+        pub fn read(self: *Self) Content {
+            return self.content;
         }
 
         pub fn write(self: *Self, value: T) void {

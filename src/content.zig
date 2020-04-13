@@ -1,12 +1,16 @@
 const std = @import("std");
 const warn = @import("std").debug.warn;
 
-pub fn Content(
-  comptime T: type, 
-  merge_value: fn(T, T) ?T,
-  add_value: fn(T, T) ?T,
-  //TODO equals
-) type {
+pub fn Generics(comptime T: type) type {
+  return struct {
+    merge: fn(T, T) ?T,
+    add: ?fn(T, T) ?T = null,
+    sub: ?fn(T, T) ?T = null,
+    mul: ?fn(T, T) ?T = null,
+  };
+}
+
+pub fn Content(comptime T: type, fns: Generics(T)) type {
     return union(enum) {
         const Self = @This();
 
@@ -42,7 +46,12 @@ pub fn Content(
         }
 
         pub fn add(self: Self, other: Self) Self {
-          return lift(self, other, add_value);
+          if (fns.add) |add_value| {
+            return lift(self, other, add_value);
+          }
+          else {
+            return .Nothing;
+          }
         }
 
         pub fn lift(self: Self, other: Self, f: fn(T, T) ?T) Self {
@@ -85,7 +94,7 @@ pub fn Content(
                   switch (other) {
                       .Nothing => { return .Nothing; },
                       .Value => |value| {
-                          var new_value = merge_value(old_value, value);
+                          var new_value = fns.merge(old_value, value);
 
                           if (new_value) |val| {
                             return Self { .Value = val };

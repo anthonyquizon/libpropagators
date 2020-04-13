@@ -1,6 +1,6 @@
 const std = @import("std");
 const Content = @import("content.zig").Content;
-
+const Generics = @import("content.zig").Generics;
 
 //FIXME equality checks
 pub fn merge(a: f64, b: f64) ?f64 {
@@ -13,8 +13,7 @@ pub fn add(a: f64, b: f64) ?f64 {
 
 pub const Decimal = Content(
   f64, 
-  merge,
-  add
+  Generics(f64) { .merge=merge, .add=add }
 );
 
 

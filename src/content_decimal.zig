@@ -7,7 +7,16 @@ pub fn merge(a: f64, b: f64) ?f64 {
   return if (a == b) a else null;
 }
 
-pub const Decimal = Content(f64, merge);
+pub fn add(a: f64, b: f64) ?f64 {
+  return a + b;
+}
+
+pub const Decimal = Content(
+  f64, 
+  merge,
+  add
+);
+
 
 //test "init" {
     //const testing = std.testing;

@@ -1,5 +1,8 @@
 const std = @import("std");
-const propagator_id = @import("util.zig").propagator_id;
+const warn = @import("std").debug.warn;
+const PropagatorID = @import("util.zig").PropagatorID;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
 
 pub fn Cell(comptime T: type) type {
     return struct {
@@ -7,13 +10,13 @@ pub fn Cell(comptime T: type) type {
 
         name: []const u8,
         content: T,
-        neighbours: []propagator_id,
+        neighbours: ArrayList(PropagatorID),
 
-        pub fn init() Self {
+        pub fn init(allocator: *Allocator) Self {
             return Self {
               .name = "cell", 
               .content = T.init(),
-              .neighbours = undefined
+              .neighbours = ArrayList(PropagatorID).init(allocator)
             };
         }
 
@@ -21,9 +24,21 @@ pub fn Cell(comptime T: type) type {
             return self.content;
         }
 
-        pub fn write(self: *Self, content: T) void {
+        pub fn write(self: *Self, content: T) ?ArrayList(PropagatorID) {
             var new_content = self.content.merge(content);
-            self.content = content;
+
+            if (!self.content.equals(new_content)) {
+              self.content = new_content;
+
+              return self.neighbours;
+            }
+            else {
+              return null;
+            }
+        }
+
+        pub fn add_neighbour(self: *Self, propagator_id: PropagatorID) void {
+          self.neighbours.append(propagator_id) catch unreachable;
         }
     };
 }

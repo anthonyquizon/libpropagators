@@ -11,9 +11,17 @@ pub fn add(a: f64, b: f64) ?f64 {
   return a + b;
 }
 
+pub fn sub(a: f64, b: f64) ?f64 {
+  return a - b;
+}
+
 pub const Decimal = Content(
   f64, 
-  Generics(f64) { .merge=merge, .add=add }
+  Generics(f64) { 
+    .merge=merge, 
+    .add=add,
+    .sub=sub 
+  }
 );
 
 

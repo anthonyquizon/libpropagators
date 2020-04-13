@@ -54,6 +54,15 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
           }
         }
 
+        pub fn sub(self: Self, other: Self) Self {
+          if (fns.sub) |f| {
+            return lift(self, other, f);
+          }
+          else {
+            return .Nothing;
+          }
+        }
+
         pub fn lift(self: Self, other: Self, f: fn(T, T) ?T) Self {
           switch (self) {
             .Value => |self_value| {

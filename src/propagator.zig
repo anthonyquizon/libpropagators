@@ -14,7 +14,6 @@ pub fn Result(comptime T: type) type {
   };
 }
 
-
 pub fn Propagator(comptime T: type) type {
   return struct {
     const Self = @This();
@@ -61,6 +60,5 @@ pub fn Propagator(comptime T: type) type {
           .Pure = .{ .cell_id=self.output, .content=output }
         };
     }
-    
   };
 }

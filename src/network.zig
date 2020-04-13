@@ -29,6 +29,9 @@ pub fn Network(comptime T: type) type {
             };
         }
 
+        pub fn deinit(self: *Self) void {
+        }
+
         pub fn make_cell(self: *Self) CellID {
           var cell = Cell.init(self.allocator);
           self.cells.append(cell) catch unreachable;

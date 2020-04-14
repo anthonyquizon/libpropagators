@@ -1,21 +1,17 @@
 const std = @import("std");
 const warn = @import("std").debug.warn;
 
-pub fn Generics(comptime T: type, comptime U: type) type {
+pub fn Generics(comptime T: type) type {
   return struct {
     merge: fn(T, T) ?T,
-    from: ?fn(U) ?T = null,
+    eq: fn(T, T) bool = null,
     add: ?fn(T, T) ?T = null,
     sub: ?fn(T, T) ?T = null,
     mul: ?fn(T, T) ?T = null,
   };
 }
 
-pub fn Content(
-    comptime T: type,
-    comptime U: type, 
-    fns: Generics(T, U)
-) type {
+pub fn Content(comptime T: type, fns: Generics(T)) type {
     return union(enum) {
         const Self = @This();
 
@@ -24,35 +20,30 @@ pub fn Content(
         Contradiction,
 
         pub fn init() Self {
-          return .Nothing;
+            return .Nothing;
         }
 
         pub fn from(value: T) Self {
-          if (fns.from) |f| {
-            return Self { .Value = f(value) };
-          }
-          else {
             return Self { .Value = value };
-          }
         }
 
         pub fn equals(self: Self, other: Self) bool {
-          switch (self) {
-            .Nothing => {
-              return other == .Nothing;
-            },
-            .Contradiction => {
-              return other == .Contradiction;
-            },
-            .Value => |self_value| {
-                switch (other) {
-                    .Value => |other_value| {
-                      return self_value == other_value;
-                    },
-                    else => { return false; }
+            switch (self) {
+                .Nothing => {
+                    return other == .Nothing;
+                },
+                .Contradiction => {
+                    return other == .Contradiction;
+                },
+                .Value => |self_value| {
+                    switch (other) {
+                        .Value => |other_value| {
+                            return fns.eq(self_value, other_value);
+                        },
+                        else => { return false; }
+                    }
                 }
             }
-          }
         }
 
         pub fn add(self: Self, other: Self) Self {

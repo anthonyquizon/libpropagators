@@ -2,50 +2,87 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const Content = @import("content.zig").Content;
 const Generics = @import("content.zig").Generics;
-const TruthManagementContext = @import("content.zig").TruthManagementContext;
+const Allocator = std.mem.Allocator;
+const TruthManagementContext = @import("context_tms.zig").TruthManagementContext;
 
-pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
-    const Context = TruthManagementContext(P);
-    const Support = struct {
+pub fn Support(comptime T: type, comptime P: type) type {
+    return struct {
         const Self = @This();
 
         value: T,
         premises: ArrayList(P),
-    };
 
-    const Instance = struct {
+        pub fn init(allocator: *Allocator, value: T, premises: []const P) Self  {
+            return Self {
+                .value=value,
+                .premises=ArrayList(P).init(allocator)
+            };
+        }
+    };
+}
+
+pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
+    const Context = TruthManagementContext(P);
+    const SupportTP = Support(T, P);
+
+    return struct {
         const Self = @This();
 
         context: *Context,
-        supports: ArrayList(Support),
+        supports: ArrayList(SupportTP),
         allocator: *Allocator,
 
-        pub fn from(allocator: *Allocator, context: *Context, value: []T) Self {
-            Self {
-                context: context,
-                supports: ArrayList(Support).init(allocator),
-                allocator: allocator
-            }
+        pub fn init(allocator: *Allocator, context: *Context, supports: []SupportTP) Self {
+            //var supports = ArrayList(SupportTP).init(allocator);
+
+            //for (values) |value| {
+                //std.debug.warn("{} {}\n,", .{value[0], value[1]});
+                //std.debug.warn("{}\n,", .{value});
+            //}
+            //comptime var i = 0;
+            //inline while (i < values.len) : (i += 1) {
+                //std.debug.warn("{} {}\n,", .{values[i]});
+            //}
+
+            return Self {
+                .context=context,
+                .supports=undefined,
+                .allocator=allocator
+            };
         }
 
-        pub fn merge(self: Self, other: Self) Self  {
-            Self {
-                context: self.context,
-                supports: 
-            }
+        pub fn merge(self: Self, other: Self) ?Self  {
+            return Self {
+                .context=self.context,
+                .supports=undefined,
+                .allocator=self.allocator
+            };
         }
 
-        //pub fn add(self: Self, other: Self) Self  {
-            
-        //}
+        pub fn eq(self: Self, other: Self) bool {
+            return true;
+        }
+
+        pub fn add(self: Self, other: Self) ?Self  {
+            return Self {
+                .context=self.context,
+                .supports=undefined,
+                .allocator=self.allocator
+            };
+        }
 
         //pub fn sub(self: Self, other: Self) Self  {
             
         //}
     };
+}
 
-    return Content(T, Self, Generics(T, Self) {
-        .merge=Instance.merge,
-        .from=Instance.from
+pub fn TruthManagementContent(comptime T: type, comptime P: type) type {
+    const Value = TruthManagementStore(T, P);
+
+    return Content(Value, Generics(Value) {
+        .merge=Value.merge,
+        .eq=Value.eq,
+        .add=Value.add,
     });
 }

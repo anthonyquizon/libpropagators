@@ -15,23 +15,9 @@ pub fn sub(a: f64, b: f64) ?f64 {
   return a - b;
 }
 
-pub const Decimal = Content(
-  f64, 
-  Generics(f64) { 
+pub const Decimal = Content(f64, f64, Generics(f64, f64) { 
     .merge=merge, 
     .add=add,
     .sub=sub 
-  }
-);
+});
 
-
-//test "init" {
-    //const testing = std.testing;
-    //const Allocator = std.mem.Allocator;
-    //const allocator = std.heap.direct_allocator;
-
-    //var content = Float.init();
-
-
-    //testing.expect(10 == 10);
-//}

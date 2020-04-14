@@ -1,16 +1,21 @@
 const std = @import("std");
 const warn = @import("std").debug.warn;
 
-pub fn Generics(comptime T: type) type {
+pub fn Generics(comptime T: type, comptime U: type) type {
   return struct {
     merge: fn(T, T) ?T,
+    from: ?fn(U) ?T = null,
     add: ?fn(T, T) ?T = null,
     sub: ?fn(T, T) ?T = null,
     mul: ?fn(T, T) ?T = null,
   };
 }
 
-pub fn Content(comptime T: type, fns: Generics(T)) type {
+pub fn Content(
+    comptime T: type,
+    comptime U: type, 
+    fns: Generics(T, U)
+) type {
     return union(enum) {
         const Self = @This();
 
@@ -23,7 +28,12 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
         }
 
         pub fn from(value: T) Self {
-          return Self { .Value = value };
+          if (fns.from) |f| {
+            return Self { .Value = f(value) };
+          }
+          else {
+            return Self { .Value = value };
+          }
         }
 
         pub fn equals(self: Self, other: Self) bool {
@@ -46,8 +56,8 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
         }
 
         pub fn add(self: Self, other: Self) Self {
-          if (fns.add) |add_value| {
-            return lift(self, other, add_value);
+          if (fns.add) |f| {
+            return lift(self, other, f);
           }
           else {
             return .Nothing;

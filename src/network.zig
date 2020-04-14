@@ -7,7 +7,7 @@ const P = @import("propagator.zig");
 const CellID = @import("util.zig").CellID;
 const PropagatorID = @import("util.zig").PropagatorID;
 
-pub fn Network(comptime T: type) type {
+pub fn Network(comptime T: type, comptime Context: type) type {
     const Cell = C.Cell(T);
     const Propagator = P.Propagator(T);
     const Result = P.Result(T);
@@ -18,19 +18,20 @@ pub fn Network(comptime T: type) type {
         cells: ArrayList(Cell),
         propagators: ArrayList(Propagator),
         alerted: ArrayList(PropagatorID),
+        context: *Context,
         allocator: *Allocator,
 
-        pub fn init(allocator: *Allocator) Self {
+        pub fn init(allocator: *Allocator, context: *Context) Self {
             return Self {
               .cells = ArrayList(Cell).init(allocator),
               .propagators = ArrayList(Propagator).init(allocator),
               .alerted = ArrayList(PropagatorID).init(allocator),
-              .allocator = allocator
+              .context = context,
+              .allocator = allocator,
             };
         }
 
-        pub fn deinit(self: *Self) void {
-        }
+        pub fn deinit(self: *Self) void {}
 
         pub fn make_cell(self: *Self) CellID {
           var cell = Cell.init(self.allocator);
@@ -97,7 +98,7 @@ pub fn Network(comptime T: type) type {
                 Result.Nothing => {},
                 Result.Pure => |result| {
                   self.write_cell(result.cell_id, result.content);
-                }
+                },
               }
             }
 

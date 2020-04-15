@@ -1,9 +1,10 @@
 const std = @import("std");
 
-const Store = @import("content_tms.zig").TruthManagementStore(f64, []const u8);
-const Content = @import("content_tms.zig").TruthManagementContent(f64, []const u8);
-const Support = @import("content_tms.zig").Support(f64, []const u8);
-const Context = @import("context_tms.zig").TruthManagementContext([]const u8);
+const Store = @import("content_tms.zig").TruthManagementStore(f64);
+const Content = @import("content_tms.zig").TruthManagementContent(f64);
+const Support = @import("content_tms.zig").Support(f64);
+const Context = @import("context_tms.zig").TruthManagementContext;
+const Premise = @import("context_tms.zig").Premise;
 
 const Arithmatic = @import("network_arithmatic.zig").Arithmatic;
 const Network = @import("network.zig").Network(Content, Context);
@@ -11,6 +12,9 @@ const testing = std.testing;
 
 
 test "add" {
+    const Foo=2;
+    const Bar=3;
+
     var context = Context.init(std.heap.page_allocator);
     var network = Network.init(std.heap.page_allocator, &context);
 
@@ -24,22 +28,18 @@ test "add" {
 
     network.write_cell(a, 
         Content.from(
-            Store.init(std.heap.page_allocator, &context, 
-                &[_] Support { 
-                    Support.init(std.heap.page_allocator, 1.0, ([_][] const u8 {"foo"})[0..])
-                    Support.init(std.heap.page_allocator, 2.0, ([_][] const u8 {"bar"})[0..])
-                }
-            )
+            Store.init(std.heap.page_allocator, &context, &[_] Support { 
+                Support.init(std.heap.page_allocator, 1.0, ([_]Premise {Foo})[0..]),
+                Support.init(std.heap.page_allocator, 2.0, ([_]Premise {Bar})[0..])
+            })
         )
     );
 
     network.write_cell(b, 
         Content.from(
-            Store.init(std.heap.page_allocator, &context, 
-                &[_] Support { 
-                    Support.init(std.heap.page_allocator, 2.0, ([_][] const u8 {"foo", "bar"})[0..])
-                }
-            )
+            Store.init(std.heap.page_allocator, &context, &[_] Support { 
+                Support.init(std.heap.page_allocator, 2.0, ([_]Premise {Foo, Bar})[0..])
+            })
         )
     );
 

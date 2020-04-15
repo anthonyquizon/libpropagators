@@ -1,72 +1,140 @@
 const std = @import("std");
+const assert = @import("std").debug.assert;
+const sort = @import("std").sort.sort;
+const asc = @import("std").sort.asc;
+const mem = @import("std").mem;
 const ArrayList = std.ArrayList;
 const Content = @import("content.zig").Content;
 const Generics = @import("content.zig").Generics;
 const Allocator = std.mem.Allocator;
-const TruthManagementContext = @import("context_tms.zig").TruthManagementContext;
+const Context = @import("context_tms.zig").TruthManagementContext;
+const Premise = @import("context_tms.zig").Premise;
 
-pub fn Support(comptime T: type, comptime P: type) type {
+//TODO offset reserved premises
+//TODO enum
+const False = 0;
+const True = 1;
+
+pub fn Support(comptime T: type) type {
     return struct {
         const Self = @This();
 
         value: T,
-        premises: ArrayList(P),
+        premises: []Premise,
 
-        pub fn init(allocator: *Allocator, value: T, premises: []const P) Self  {
+        pub fn init(allocator: *Allocator, value: T, premises: []const Premise) Self {
+            var premise_arr = allocator.alloc(Premise, premises.len) catch unreachable;
+
+            mem.copy(Premise, premise_arr[0..], premises);
+            
+            sort(Premise, premise_arr[0..], asc(Premise));
+
             return Self {
                 .value=value,
-                .premises=ArrayList(P).init(allocator)
+                .premises=premise_arr
             };
+        }
+
+        pub fn compare_asc(self: Self, other: Self) bool {
+            if (self.value < other.value) {
+                return true;
+            }
+
+            if (self.premises.len < other.premises.len) {
+                return true;
+            }
+
+            for (self.premises) |premise, i| {
+                if (premise < other.premises[i]) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        pub fn eq(self: Self, other: Self) bool {
+            if (self.value != other.value) {
+                return false;
+            }
+
+            if (self.premises.len != other.premises.len) {
+                return false;
+            }
+
+            for (self.premises) |premise, i| {
+                if (premise != other.premises[i]) {
+                    return false;
+                }
+            }
+
+            return true;
         }
     };
 }
 
-pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
-    const Context = TruthManagementContext(P);
-    const SupportTP = Support(T, P);
+pub fn TruthManagementStore(comptime T: type) type {
+    const SupportT = Support(T);
 
     return struct {
         const Self = @This();
 
         context: *Context,
-        supports: ArrayList(SupportTP),
+        supports: []SupportT,
         allocator: *Allocator,
 
-        pub fn init(allocator: *Allocator, context: *Context, supports: []SupportTP) Self {
-            //var supports = ArrayList(SupportTP).init(allocator);
+        pub fn init(allocator: *Allocator, context: *Context, supports: []SupportT) Self {
+            var support_arr = allocator.alloc(SupportT, supports.len) catch unreachable;
 
-            //for (values) |value| {
-                //std.debug.warn("{} {}\n,", .{value[0], value[1]});
-                //std.debug.warn("{}\n,", .{value});
-            //}
-            //comptime var i = 0;
-            //inline while (i < values.len) : (i += 1) {
-                //std.debug.warn("{} {}\n,", .{values[i]});
-            //}
+            mem.copy(SupportT, support_arr[0..], supports);
+            
+            sort(SupportT, support_arr[0..], SupportT.compare_asc);
 
             return Self {
                 .context=context,
-                .supports=undefined,
+                .supports=support_arr,
                 .allocator=allocator
             };
         }
 
         pub fn merge(self: Self, other: Self) ?Self  {
+            var support_arr = self.allocator.alloc(SupportT, self.supports.len) catch unreachable;
+
+            mem.copy(SupportT, support_arr[0..], self.supports);
+
+            sort(SupportT, support_arr[0..], SupportT.compare_asc);
+            
             return Self {
                 .context=self.context,
-                .supports=undefined,
+                .supports=support_arr,
                 .allocator=self.allocator
             };
         }
 
         pub fn eq(self: Self, other: Self) bool {
+            if (self.supports.len != other.supports.len) {
+                return false;
+            }
+
+            for (self.supports) |support, i| {
+                if (!SupportT.eq(support, other.supports[i])) {
+                    return false;
+                }
+            }
+
             return true;
         }
 
         pub fn add(self: Self, other: Self) ?Self  {
+            var support_arr = self.allocator.alloc(SupportT, self.supports.len) catch unreachable;
+
+            mem.copy(SupportT, support_arr[0..], self.supports);
+
+            sort(SupportT, support_arr[0..], SupportT.compare_asc);
+            
             return Self {
                 .context=self.context,
-                .supports=undefined,
+                .supports=support_arr,
                 .allocator=self.allocator
             };
         }
@@ -77,8 +145,8 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
     };
 }
 
-pub fn TruthManagementContent(comptime T: type, comptime P: type) type {
-    const Value = TruthManagementStore(T, P);
+pub fn TruthManagementContent(comptime T: type) type {
+    const Value = TruthManagementStore(T);
 
     return Content(Value, Generics(Value) {
         .merge=Value.merge,

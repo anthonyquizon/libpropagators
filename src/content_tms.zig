@@ -70,6 +70,37 @@ pub fn Support(comptime T: type) type {
 
             return true;
         }
+
+        pub fn add(allocator: *Allocator, self: Self, other: Self) Self {
+            const n = self.premises.len + other.premises.len;
+            var premises = allocator.alloc(Premise, n) catch unreachable;
+            var tmp = allocator.alloc(Premise, n) catch unreachable;
+            defer allocator.free(tmp);
+
+            mem.copy(Premise, tmp[0..self.premises.len], self.premises);
+            mem.copy(Premise, tmp[self.premises.len..], other.premises);
+
+            sort(Premise, tmp[0..], asc(Premise));
+
+            var i : usize = 0;
+            var j : usize = 0;
+
+            while (i < n - 1) {
+                if (tmp[i] != tmp[i + 1]) {
+                    premises[j] = tmp[i];
+                    j += 1;
+                }
+                i += 1;
+            }
+
+            premises[j] = tmp[n - 1];
+            premises = allocator.realloc(premises, j + 1) catch unreachable;
+
+            return Self {
+                .value=self.value + other.value,
+                .premises=premises
+            };
+        }
     };
 }
 
@@ -126,15 +157,22 @@ pub fn TruthManagementStore(comptime T: type) type {
         }
 
         pub fn add(self: Self, other: Self) ?Self  {
-            var support_arr = self.allocator.alloc(SupportT, self.supports.len) catch unreachable;
+            const n = self.supports.len + other.supports.len;
+            var supports = self.allocator.alloc(SupportT, n) catch unreachable; //FIXME
+            var i : usize = 0;
 
-            mem.copy(SupportT, support_arr[0..], self.supports);
+            for (self.supports) |self_support| {
+                for (other.supports) |other_support| {
+                    supports[i] = SupportT.add(self.allocator, self_support, other_support);
+                    i += 1;
+                }
+            }
 
-            sort(SupportT, support_arr[0..], SupportT.compare_asc);
+            sort(SupportT, supports[0..], SupportT.compare_asc);
             
             return Self {
                 .context=self.context,
-                .supports=support_arr,
+                .supports=supports,
                 .allocator=self.allocator
             };
         }

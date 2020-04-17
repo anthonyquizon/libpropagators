@@ -9,6 +9,7 @@ const Generics = @import("content.zig").Generics;
 const Allocator = std.mem.Allocator;
 const Context = @import("context_tms.zig").TruthManagementContext;
 const Premise = @import("context_tms.zig").Premise;
+const Array = @import("util.zig").Array;
 
 //TODO offset reserved premises
 //TODO enum
@@ -72,29 +73,7 @@ pub fn Support(comptime T: type) type {
         }
 
         pub fn add(allocator: *Allocator, self: Self, other: Self) Self {
-            const n = self.premises.len + other.premises.len;
-            var premises = allocator.alloc(Premise, n) catch unreachable;
-            var tmp = allocator.alloc(Premise, n) catch unreachable;
-            defer allocator.free(tmp);
-
-            mem.copy(Premise, tmp[0..self.premises.len], self.premises);
-            mem.copy(Premise, tmp[self.premises.len..], other.premises);
-
-            sort(Premise, tmp[0..], asc(Premise));
-
-            var i : usize = 0;
-            var j : usize = 0;
-
-            while (i < n - 1) {
-                if (tmp[i] != tmp[i + 1]) {
-                    premises[j] = tmp[i];
-                    j += 1;
-                }
-                i += 1;
-            }
-
-            premises[j] = tmp[n - 1];
-            premises = allocator.realloc(premises, j + 1) catch unreachable;
+            const premises = Array.sorted_append(Premise, allocator, self.premises, other.premises, asc(Premise));
 
             return Self {
                 .value=self.value + other.value,
@@ -128,18 +107,32 @@ pub fn TruthManagementStore(comptime T: type) type {
             };
         }
 
-        pub fn merge(self: Self, other: Self) ?Self  {
-            var support_arr = self.allocator.alloc(SupportT, self.supports.len) catch unreachable;
+        fn assimilate(self: *Self, other: *Self) Self {
+            var new = Self.init(self.allocator, self.context, [_]SupportT{});
 
-            mem.copy(SupportT, support_arr[0..], self.supports);
+            var any_subsumes = false;
 
-            sort(SupportT, support_arr[0..], SupportT.compare_asc);
+            for (other.supports) |other_support| {
+                for (self.supports) |self_support| {
+                    if (self_support.subsumes(other_support)) {
+                        any_subsumes = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!any_subsumes) {
+                var supports = 
+            }
             
-            return Self {
-                .context=self.context,
-                .supports=support_arr,
-                .allocator=self.allocator
-            };
+            return new;
+        }
+
+        pub fn merge(self: Self, other: Self) ?Self  {
+            var candidate = self.assimilate(&other);
+            var consequence = candidate.strongest_consequence();
+
+            return candidate.assimilate(&consequence);
         }
 
         pub fn eq(self: Self, other: Self) bool {

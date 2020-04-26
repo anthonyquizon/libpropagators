@@ -26,7 +26,7 @@ pub const TruthManagementContext = struct {
         };
     }
 
-    pub fn premise_in(self: *Self, premise: Premise) Self {
+    pub fn is_premise_in(self: *Self, premise: Premise) bool {
         for (self.premise_outness.items) |premise| {
             if (premise == Premise) {
                 return true;

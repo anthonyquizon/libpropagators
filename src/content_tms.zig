@@ -9,7 +9,7 @@ const Generics = @import("content.zig").Generics;
 const Allocator = std.mem.Allocator;
 const Context = @import("context_tms.zig").TruthManagementContext;
 const Premise = @import("context_tms.zig").Premise;
-const Array = @import("util.zig").Array;
+const ArraySet = @import("array_set.zig").ArraySet;
 
 //TODO offset reserved premises
 //TODO enum
@@ -22,6 +22,7 @@ pub fn Support(comptime T: type) type {
 
         value: T,
         premises: []Premise,
+        allocator: *Allocator,
 
         pub fn init(allocator: *Allocator, value: T, premises: []const Premise) Self {
             var premise_arr = allocator.alloc(Premise, premises.len) catch unreachable;
@@ -32,12 +33,13 @@ pub fn Support(comptime T: type) type {
 
             return Self {
                 .value=value,
-                .premises=premise_arr
+                .premises=premise_arr,
+                .allocator=allocator
             };
         }
 
         pub fn compare_asc(self: Self, other: Self) bool {
-            if (self.value < other.value) {
+            if (self.value.less_than(other.value)) {
                 return true;
             }
 
@@ -55,30 +57,57 @@ pub fn Support(comptime T: type) type {
         }
 
         pub fn eq(self: Self, other: Self) bool {
-            if (self.value != other.value) {
+            if (!self.value.eq(other.value)) {
                 return false;
             }
 
-            if (self.premises.len != other.premises.len) {
-                return false;
-            }
-
-            for (self.premises) |premise, i| {
-                if (premise != other.premises[i]) {
-                    return false;
-                }
-            }
-
-            return true;
+            return ArraySet(T).eq(Premise, self.premises, other.premises);
         }
 
-        pub fn add(allocator: *Allocator, self: Self, other: Self) Self {
-            const premises = Array.sorted_append(Premise, allocator, self.premises, other.premises, asc(Premise));
+        pub fn add(self: Self, other: Self) Self {
+            const premises = ArraySet(T)._union(Premise, self.allocator, self.premises, other.premises, asc(Premise));
+            const value = self.value.add(other.value);
+            
+            return Self.init(self.allocator, value, premises);
+        }
 
-            return Self {
-                .value=self.value + other.value,
-                .premises=premises
-            };
+        pub fn clone(self: Self) Self {
+            return Self.init(self.allocator, self.value, self.premises);
+        }
+
+        pub fn merge(self: *Self, other: *Self) Self {
+            const merged_value = self.value.merge(other.value);
+
+            if (merged_value.eq(self.value)) {
+                if (other.value.merge(merged_value).eq(other.value)) {
+                    if (!ArraySet(T).eq(Premise, self.premises, other.premises) &&
+                        ArraySet(T).is_subset(Premise, other.premises, self.premises)) 
+                    {
+                        return other.clone();
+                    }
+                    else {
+                        return self.clone();
+                    }
+                }
+                else {
+                    return self.clone();
+                }
+            }
+            else if (merged_value.eq(other.value)) {
+                return other.clone();
+            }
+            else {
+                const premises = ArraySet(T)._union(Premise, self.allocator, self.premises, other.premises);
+
+                return Self.init(self.allocator, merged_value, premises);
+            }
+        }
+
+        pub fn subsumes(self: *Self, other: *Self) bool {
+            const is_value_eq = self.value == self.value.merge(other.value);
+            const is_premise_subset = ArraySet(T).is_subset(self.premises, other.premises);
+
+            return is_value_eq and is_premise_subset;
         }
     };
 }
@@ -107,25 +136,61 @@ pub fn TruthManagementStore(comptime T: type) type {
             };
         }
 
+        fn any_subsumes(self: *Self, other_support: SupportT) bool {
+            for (self.supports) |self_support| {
+                if (self_support.subsumes(other_support)) {
+                    return true;
+                }
+            }
+        }
+
         fn assimilate(self: *Self, other: *Self) Self {
             var new = Self.init(self.allocator, self.context, [_]SupportT{});
-
             var any_subsumes = false;
 
+            var i : usize = 0;
+            var supports = self.allocator.alloc(SupportT, self.supports.len * other.supports.len) catch unreachable; //FIXME
+
             for (other.supports) |other_support| {
-                for (self.supports) |self_support| {
-                    if (self_support.subsumes(other_support)) {
-                        any_subsumes = true;
-                        break;
+                if (self.any_subsumes(other_support)) { break; }
+
+                for (self.supports) |support| {
+                    if (!support.subsumes(other_support)) {
+                        supports[i] = self.supported;
+                        i += 1;
                     }
                 }
             }
 
-            if (!any_subsumes) {
-                var supports = 
-            }
+            supports[i] = other_support;
+            supports = self.allocator.realloc(supports, i) catch unreachable; //FIXME
+            ArraySet(T).remove_duplicates(supports);
+
+            new.supports = supports;
             
             return new;
+        }
+
+        fn strongest_consequence(self: *Self) Self {
+            var support = undefined;
+
+            for (self.supports) |current_support| {
+                var all_valid = true;
+
+                for (current_support.premises) |premise| {
+                    if (self.context.is_premise_in(premise)) {
+                        all_valid = false;
+                        break;
+                    }
+                }
+
+                if (all_valid) {
+                    if (support) { support = support.merge(&current_support); } 
+                    else { support = current_support; }
+                }
+            }
+            
+            return Self.init(self.allocator, self.contest, [support]);
         }
 
         pub fn merge(self: Self, other: Self) ?Self  {

@@ -1,6 +1,8 @@
-(use-package-modules rust entr)
+(specifications->manifest 
+  '("ghc"
+    "ghc-attoparsec"
+    "cabal-install"
+    "coreutils"
+    "gcc-toolchain"
+    ))
 
-(packages->manifest
- (list rust 
-       rust:cargo
-       entr))

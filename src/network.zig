@@ -56,7 +56,8 @@ pub fn Network(comptime T: type, comptime Context: type) type {
 
         pub fn read_cell(self: *Self, cell_id: CellID) T {
           var cell = self.cells.items[cell_id];
-          return cell.read();
+
+          return cell.content;
         }
 
         pub fn make_propagator(self: *Self, procedure: fn([]T) T, inputs: []CellID, output: CellID) PropagatorID {
@@ -67,7 +68,7 @@ pub fn Network(comptime T: type, comptime Context: type) type {
             const id = self.propagators.items.len - 1;
 
             for (inputs) |cell_id| {
-              self.cells.items[cell_id].add_neighbour(id);
+              self.cells.items[cell_id].neighbours.append(propagator_id);
             }
 
             return id;
@@ -81,7 +82,7 @@ pub fn Network(comptime T: type, comptime Context: type) type {
             //TODO defererr?
 
             for (self.cells.items) |*cell, i| {
-              contents[i] = cell.read();
+              contents[i] = cell.content;
             }
 
             for (self.alerted.items[0..self.alerted.items.len]) |propagator_id| {

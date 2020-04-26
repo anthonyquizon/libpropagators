@@ -20,10 +20,6 @@ pub fn Cell(comptime T: type) type {
             };
         }
 
-        pub fn read(self: *Self) T {
-            return self.content;
-        }
-
         pub fn write(self: *Self, content: T) ?ArrayList(PropagatorID) {
             var new_content = self.content.merge(content);
 
@@ -35,10 +31,6 @@ pub fn Cell(comptime T: type) type {
             else {
               return null;
             }
-        }
-
-        pub fn add_neighbour(self: *Self, propagator_id: PropagatorID) void {
-          self.neighbours.append(propagator_id) catch unreachable;
         }
     };
 }

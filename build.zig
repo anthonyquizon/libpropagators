@@ -12,7 +12,7 @@ pub fn build(b: *Builder) void {
     lib.setBuildMode(mode);
     lib.install();
 
-    var main_tests = b.addTest("src/main.zig");
+    var main_tests = b.addTest("src/lib.zig");
     main_tests.setBuildMode(mode);
 
     const test_step = b.step("test", "Run library tests");
@@ -22,15 +22,23 @@ pub fn build(b: *Builder) void {
         Example { .name="tms_add", .src="examples/tms_add.zig" }
     };
 
-    const example_step = b.step("examples", "Build examples");
+    const examples_step = b.step("examples", "Build examples");
+    
     inline for ([_][]const u8{
         "tms_add",
     }) |example_name| {
-        const example = b.addExecutable(example_name, "examples/" ++ example_name ++ ".zig");
-        example.addPackagePath("propagators", "src/lib.zig");
-        example.setBuildMode(mode);
-        example.install();
-        example_step.dependOn(&example.step);
+        const example_exe = b.addExecutable(example_name, "examples/" ++ example_name ++ ".zig");
+        const run_step = b.step("example_" ++ example_name, "Run " ++ example_name);
+        const run_cmd = example_exe.run();
+
+        run_cmd.step.dependOn(b.getInstallStep());
+        run_step.dependOn(&run_cmd.step);
+
+        example_exe.addPackagePath("propagators", "src/lib.zig");
+        example_exe.setBuildMode(mode);
+        example_exe.install();
+
+        examples_step.dependOn(&example_exe.step);
     }
 
 }

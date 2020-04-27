@@ -1,4 +1,6 @@
 const std = @import("std");
+const sort = std.sort.sort;
+const mem = std.mem;
 const Allocator = std.mem.Allocator;
 
 pub const PropagatorID = usize;
@@ -9,8 +11,7 @@ pub fn ArraySet(comptime T: type) type {
     return struct {
         pub fn remove_duplicates(
             allocator: *Allocator, 
-            xs: []T, 
-            lessThan: fn (lhs: T, rhs: T) bool
+            xs: []T
         ) []T {
             var out = allocator.alloc(T, xs.len) catch unreachable; //FIXME
             var tmp = allocator.alloc(T, xs.len) catch unreachable;
@@ -18,7 +19,7 @@ pub fn ArraySet(comptime T: type) type {
 
             mem.copy(T, tmp[0..], xs);
 
-            sort(T, tmp[0..], lessThan);
+            sort(T, tmp[0..], T.less_than);
 
             var i : usize = 0;
             var j : usize = 0;
@@ -40,24 +41,23 @@ pub fn ArraySet(comptime T: type) type {
         pub fn _union(
             allocator: *Allocator, 
             xs: []T, 
-            ys: []T, 
-            lessThan: fn (lhs: T, rhs: T) bool
+            ys: []T
         ) []T {
             const n = xs.len + ys.len;
             var out = allocator.alloc(T, n) catch unreachable; //FIXME
             var tmp = allocator.alloc(T, n) catch unreachable;
             defer allocator.free(tmp);
 
-            mem.copy(T, tmp[0..as.len], as);
-            mem.copy(T, tmp[as.len..], bs);
+            mem.copy(T, tmp[0..xs.len], xs);
+            mem.copy(T, tmp[ys.len..], ys);
 
-            sort(T, tmp[0..], lessThan);
+            sort(T, tmp[0..], T.less_than);
 
             var i : usize = 0;
             var j : usize = 0;
 
             while (i < n - 1) {
-                if (tmp[i] != tmp[i + 1]) {
+                if (!tmp[i].eq(tmp[i + 1])) {
                     out[j] = tmp[i];
                     j += 1;
                 }
@@ -71,12 +71,12 @@ pub fn ArraySet(comptime T: type) type {
         }
 
         pub fn eq(xs: []T, ys: []T) bool {
-            if (xy.len != ys.len) {
+            if (xs.len != ys.len) {
                 return false;
             }
 
             for (xs) |x, i| {
-                if (x != ys[i]) { return false; }
+                if (!x.eq(ys[i])) { return false; }
             }
 
             return true;
@@ -89,7 +89,7 @@ pub fn ArraySet(comptime T: type) type {
             if (xs.len > ys.len) { return false; }
 
             while (i < xs.len) {
-                if (xs[i] != ys[i]) {
+                if (!xs[i].eq(ys[i])) {
                     return false;
                 }
 
@@ -98,7 +98,7 @@ pub fn ArraySet(comptime T: type) type {
 
             return true;
         }
-    }
-};
+    };
+}
 
 

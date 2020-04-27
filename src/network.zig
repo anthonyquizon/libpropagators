@@ -40,7 +40,7 @@ pub fn Network(comptime T: type, comptime Context: type) type {
           return self.cells.items.len - 1;
         }
 
-        pub fn write_cell(self: *Self, cell_id: CellID, content: T) void {
+        pub fn write_cell(self: *Self, cell_id: CellID, content: *const T) void {
           var cell = self.cells.items[cell_id];
 
           const alerted = cell.write(content);
@@ -65,13 +65,13 @@ pub fn Network(comptime T: type, comptime Context: type) type {
 
             self.propagators.append(propagator) catch unreachable;
 
-            const id = self.propagators.items.len - 1;
+            const propagator_id = self.propagators.items.len - 1;
 
             for (inputs) |cell_id| {
-              self.cells.items[cell_id].neighbours.append(propagator_id);
+                self.cells.items[cell_id].neighbours.append(propagator_id) catch unreachable; //FIXME
             }
 
-            return id;
+            return propagator_id;
         }
       
         pub fn run(self: *Self) !void {
@@ -98,7 +98,7 @@ pub fn Network(comptime T: type, comptime Context: type) type {
               switch (value) {
                 Result.Nothing => {},
                 Result.Pure => |result| {
-                  self.write_cell(result.cell_id, result.content);
+                  self.write_cell(result.cell_id, &result.content);
                 },
               }
             }

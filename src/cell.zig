@@ -20,10 +20,10 @@ pub fn Cell(comptime T: type) type {
             };
         }
 
-        pub fn write(self: *Self, content: T) ?ArrayList(PropagatorID) {
+        pub fn write(self: *Self, content: *const T) ?ArrayList(PropagatorID) {
             var new_content = self.content.merge(content);
 
-            if (!self.content.equals(new_content)) {
+            if (!self.content.eq(new_content)) {
               self.content = new_content;
 
               return self.neighbours;

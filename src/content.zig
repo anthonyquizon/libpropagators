@@ -3,11 +3,12 @@ const warn = @import("std").debug.warn;
 
 pub fn Generics(comptime T: type) type {
   return struct {
-    merge: fn(T, T) ?T,
+    merge: fn(*const T, *const T) ?T,
     eq: fn(T, T) bool = null,
     add: ?fn(T, T) ?T = null,
     sub: ?fn(T, T) ?T = null,
     mul: ?fn(T, T) ?T = null,
+    less_than: ?fn(T, T) bool = null,
   };
 }
 
@@ -27,7 +28,7 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
             return Self { .Value = value };
         }
 
-        pub fn equals(self: Self, other: Self) bool {
+        pub fn eq(self: Self, other: Self) bool {
             switch (self) {
                 .Nothing => {
                     return other == .Nothing;
@@ -39,6 +40,35 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
                     switch (other) {
                         .Value => |other_value| {
                             return fns.eq(self_value, other_value);
+                        },
+                        else => { return false; }
+                    }
+                }
+            }
+        }
+
+        pub fn less_than(self: Self, other: Self) bool {
+            switch (self) {
+                .Nothing => {
+                    return false;
+                },
+                .Contradiction => {
+                    //FIXME
+                    if (other == .Value) { 
+                        return true;
+                    }
+
+                    return false;
+                },
+                .Value => |self_value| {
+                    switch (other) {
+                        .Value => |other_value| {
+                            if (fns.less_than) |f| {
+                                return f(self_value, other_value);
+                            }
+                            else {
+                                return self_value < other_value;
+                            }
                         },
                         else => { return false; }
                     }
@@ -97,17 +127,33 @@ pub fn Content(comptime T: type, fns: Generics(T)) type {
           return false;
         }
 
-        pub fn merge(self: Self, other: Self) Self {
-            switch (self) {
-                .Nothing => { return other; },
+        pub fn clone(self: *const Self) Self {
+            switch (self.*) {
+                .Nothing => { 
+                    return .Nothing;
+                },
+                .Value => |value| {
+                    return Self { .Value = value };
+                },
+                .Contradiction => {
+                    return .Contradiction;
+                }
+            }
+        }
+
+        pub fn merge(self: *const Self, other: *const Self) Self {
+            switch (self.*) {
+                .Nothing => { 
+                    return other.clone(); 
+                },
                 .Value => |old_value| {
-                  switch (other) {
+                  switch (other.*) {
                       .Nothing => { return .Nothing; },
                       .Value => |value| {
-                          var new_value = fns.merge(old_value, value);
+                          var new_value = fns.merge(&old_value, &value);
 
                           if (new_value) |val| {
-                            return Self { .Value = val };
+                            return self.clone();
                           } else {
                             return Self.Contradiction;
                         }

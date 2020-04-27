@@ -1,19 +1,33 @@
 const std = @import("std");
 
-const Store = @import("content_tms.zig").TruthManagementStore(f64);
-const Content = @import("content_tms.zig").TruthManagementContent(f64);
-const Support = @import("content_tms.zig").Support(f64);
-const Context = @import("context_tms.zig").TruthManagementContext;
-const Premise = @import("context_tms.zig").Premise;
+const Decimal = @import("content_decimal.zig").Decimal;
+
+const StoreBase = @import("content_tms.zig").TruthManagementStore;
+const ContentBase = @import("content_tms.zig").TruthManagementContent;
+const SupportBase = @import("content_tms.zig").Support;
+
+const ContextBase = @import("context_tms.zig").TruthManagementContext;
+const PremiseBase = @import("context_tms.zig").Premise;
+const NetworkBase = @import("network.zig").Network;
 
 const Arithmatic = @import("network_arithmatic.zig").Arithmatic;
-const Network = @import("network.zig").Network(Content, Context);
 const testing = std.testing;
 
 
 test "add" {
-    const Foo=2;
-    const Bar=3;
+    const PremiseSupplied = enum(u8) {
+        Foo,
+        Bar
+    };
+
+    const Premise = PremiseBase(PremiseSupplied);
+
+    const Store = StoreBase(Decimal, Premise);
+    const Content = ContentBase(Decimal, Premise);
+    const Support = SupportBase(Decimal, Premise);
+
+    const Context = ContextBase(Premise);
+    const Network = NetworkBase(Content, Context);
 
     var context = Context.init(std.heap.page_allocator);
     var network = Network.init(std.heap.page_allocator, &context);
@@ -27,18 +41,25 @@ test "add" {
     _ = propagator_add(&network, a, b, c);
 
     network.write_cell(a, 
-        Content.from(
+        &Content.from(
             Store.init(std.heap.page_allocator, &context, &[_] Support { 
-                Support.init(std.heap.page_allocator, 1.0, ([_]Premise {Foo})[0..]),
-                Support.init(std.heap.page_allocator, 2.0, ([_]Premise {Bar})[0..])
+                Support.init(std.heap.page_allocator, Decimal.from(1.0), ([_]Premise {
+                    Premise.from(PremiseSupplied.Foo)
+                })[0..]),
+                Support.init(std.heap.page_allocator, Decimal.from(2.0), ([_]Premise {
+                    Premise.from(PremiseSupplied.Bar)
+                })[0..])
             })
         )
     );
 
     network.write_cell(b, 
-        Content.from(
+        &Content.from(
             Store.init(std.heap.page_allocator, &context, &[_] Support { 
-                Support.init(std.heap.page_allocator, 2.0, ([_]Premise {Foo, Bar})[0..])
+                Support.init(std.heap.page_allocator, Decimal.from(2.0), ([_]Premise {
+                    Premise.from(PremiseSupplied.Foo), 
+                    Premise.from(PremiseSupplied.Bar)
+                })[0..])
             })
         )
     );

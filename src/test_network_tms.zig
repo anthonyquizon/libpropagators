@@ -2,12 +2,7 @@ const std = @import("std");
 
 const Decimal = @import("content_decimal.zig").Decimal;
 
-const StoreBase = @import("content_tms.zig").TruthManagementStore;
-const ContentBase = @import("content_tms.zig").TruthManagementContent;
-const SupportBase = @import("content_tms.zig").Support;
-
-const ContextBase = @import("context_tms.zig").TruthManagementContext;
-const PremiseBase = @import("context_tms.zig").Premise;
+const TruthManagementSystemBase = @import("truth_management_system.zig").TruthManagementSystem;
 const NetworkBase = @import("network.zig").Network;
 
 const Arithmatic = @import("network_arithmatic.zig").Arithmatic;
@@ -15,18 +10,18 @@ const testing = std.testing;
 
 
 test "add" {
-    const PremiseSupplied = enum(u8) {
+    const Premise = enum(u8) {
         Foo,
         Bar
     };
 
-    const Premise = PremiseBase(PremiseSupplied);
+    const TruthManagementSystem = TruthManagementSystemBase(Decimal, Premise);
 
-    const Store = StoreBase(Decimal, Premise);
-    const Content = ContentBase(Decimal, Premise);
-    const Support = SupportBase(Decimal, Premise);
+    const Store = TruthManagementSystem.Store;
+    const Content = TruthManagementSystem.Content;
+    const Support = TruthManagementSystem.Support;
+    const Context = TruthManagementSystem.Context;
 
-    const Context = ContextBase(Premise);
     const Network = NetworkBase(Content, Context);
 
     var context = Context.init(std.heap.page_allocator);
@@ -44,10 +39,10 @@ test "add" {
         &Content.from(
             Store.init(std.heap.page_allocator, &context, &[_] Support { 
                 Support.init(std.heap.page_allocator, Decimal.from(1.0), ([_]Premise {
-                    Premise.from(PremiseSupplied.Foo)
+                    Premise.Foo
                 })[0..]),
                 Support.init(std.heap.page_allocator, Decimal.from(2.0), ([_]Premise {
-                    Premise.from(PremiseSupplied.Bar)
+                    Premise.Bar
                 })[0..])
             })
         )
@@ -57,8 +52,8 @@ test "add" {
         &Content.from(
             Store.init(std.heap.page_allocator, &context, &[_] Support { 
                 Support.init(std.heap.page_allocator, Decimal.from(2.0), ([_]Premise {
-                    Premise.from(PremiseSupplied.Foo), 
-                    Premise.from(PremiseSupplied.Bar)
+                    Premise.Foo, 
+                    Premise.Bar
                 })[0..])
             })
         )

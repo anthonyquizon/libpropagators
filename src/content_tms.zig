@@ -35,7 +35,7 @@ pub fn Support(comptime T: type, comptime P: type) type {
             };
         }
 
-        pub fn compare_asc(self: Self, other: Self) bool {
+        pub fn less_than(self: Self, other: Self) bool {
             if (self.value.less_than(other.value)) {
                 return true;
             }
@@ -73,12 +73,12 @@ pub fn Support(comptime T: type, comptime P: type) type {
         }
 
         pub fn merge(self: *Self, other: *Self) Self {
-            const merged_value = self.value.merge(other.value);
+            const merged_value = self.value.merge(&other.value);
 
             if (merged_value.eq(self.value)) {
-                if (other.value.merge(merged_value).eq(other.value)) {
-                    if (!ArraySet(T).eq(P, self.premises, other.premises) and
-                        ArraySet(T).is_subset(P, other.premises, self.premises)) 
+                if (other.value.merge(&merged_value).eq(other.value)) {
+                    if (!ArraySet(P).eq(self.premises, other.premises) and
+                        ArraySet(P).is_subset(other.premises, self.premises)) 
                     {
                         return other.clone();
                     }
@@ -94,14 +94,14 @@ pub fn Support(comptime T: type, comptime P: type) type {
                 return other.clone();
             }
             else {
-                const premises = ArraySet(P)._union(P, self.allocator, self.premises, other.premises);
+                const premises = ArraySet(P)._union(self.allocator, self.premises, other.premises);
 
                 return Self.init(self.allocator, merged_value, premises);
             }
         }
 
-        pub fn subsumes(self: *Self, other: *Self) bool {
-            const is_value_eq = self.value.eq(self.value.merge(other.value));
+        pub fn subsumes(self: *const Self, other: *const Self) bool {
+            const is_value_eq = self.value.eq(self.value.merge(&other.value));
             const is_premise_subset = ArraySet(P).is_subset(self.premises, other.premises);
 
             return is_value_eq and is_premise_subset;
@@ -122,7 +122,7 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
 
             mem.copy(Support(T, P), support_arr[0..], supports);
             
-            sort(Support(T, P), support_arr[0..], Support(T, P).compare_asc);
+            sort(Support(T, P), support_arr[0..], Support(T, P).less_than);
 
             return Self {
                 .context=context,
@@ -135,7 +135,7 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
             return Self.init(self.allocator, self.context, self.supports);
         }
 
-        fn any_subsumes(self: *Self, other_support: *Support(T, P)) bool {
+        fn any_subsumes(self: *const Self, other_support: *const Support(T, P)) bool {
             for (self.supports) |self_support| {
                 if (self_support.subsumes(other_support)) {
                     return true;
@@ -155,29 +155,31 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
                 if (self.any_subsumes(&other_support)) { break; }
 
                 for (self.supports) |support| {
-                    if (!support.subsumes(other_support)) {
-                        supports[i] = self.supported;
+                    if (!support.subsumes(&other_support)) {
+                        supports[i] = other_support.clone();
                         i += 1;
                     }
                 }
             }
 
-            supports[i] = other_support;
             supports = self.allocator.realloc(supports, i) catch unreachable; //FIXME
-            ArraySet(T).remove_duplicates(supports);
-
-            new.supports = supports;
+            new.supports = ArraySet(Support(T, P)).remove_duplicates(self.allocator, supports);
             
             return new;
         }
 
         fn strongest_consequence(self: *const Self) Self {
-            var support = undefined;
+            if (self.supports.len == 0) {
+                return self.clone();
+            }
 
-            for (self.supports) |current_support| {
+            var support : Support(T, P) = self.supports[0];
+            var i : usize = 1;
+
+            while (i < self.supports.len) {
                 var all_valid = true;
 
-                for (current_support.premises) |premise| {
+                for (self.supports[i].premises) |premise| {
                     if (self.context.is_premise_in(premise)) {
                         all_valid = false;
                         break;
@@ -185,20 +187,20 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
                 }
 
                 if (all_valid) {
-                    if (support) { support = support.merge(current_support); } 
-                    else { support = current_support; }
+                    support = support.merge(&self.supports[i]); 
                 }
+
+                i += 1;
             }
             
-            return Self.init(self.allocator, self.contest, Support(T, P)[_] {support});
+            return Self.init(self.allocator, self.context, &[_]Support(T, P){support});
         }
 
         pub fn merge(self: *const Self, other: *const Self) ?Self  {
-            //var candidate = self.assimilate(other);
-            //var consequence = candidate.strongest_consequence();
+            var candidate = self.assimilate(other);
+            var consequence = candidate.strongest_consequence();
 
-            //return candidate.assimilate(consequence);
-            return self.clone();
+            return candidate.assimilate(&consequence);
         }
 
         pub fn eq(self: Self, other: Self) bool {
@@ -227,7 +229,7 @@ pub fn TruthManagementStore(comptime T: type, comptime P: type) type {
                 }
             }
 
-            sort(Support(T, P), supports[0..], Support(T, P).compare_asc);
+            sort(Support(T, P), supports[0..], Support(T, P).less_than);
             
             return Self {
                 .context=self.context,

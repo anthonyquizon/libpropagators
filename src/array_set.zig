@@ -11,7 +11,7 @@ pub fn ArraySet(comptime T: type) type {
     return struct {
         pub fn remove_duplicates(
             allocator: *Allocator, 
-            xs: []T
+            xs: []const T
         ) []T {
             var out = allocator.alloc(T, xs.len) catch unreachable; //FIXME
             var tmp = allocator.alloc(T, xs.len) catch unreachable;
@@ -24,15 +24,15 @@ pub fn ArraySet(comptime T: type) type {
             var i : usize = 0;
             var j : usize = 0;
 
-            while (i < n - 1) {
-                if (tmp[i] != tmp[i + 1]) {
-                    out[j] = tmp[i];
+            while (i < xs.len - 1) {
+                if (!tmp[i].eq(tmp[i + 1])) {
+                    out[j] = tmp[i].clone();
                     j += 1;
                 }
                 i += 1;
             }
 
-            out[j] = tmp[n - 1];
+            out[j] = tmp[xs.len - 1];
             out = allocator.realloc(out, j + 1) catch unreachable; //FIXME
 
             return out;
@@ -40,8 +40,8 @@ pub fn ArraySet(comptime T: type) type {
 
         pub fn _union(
             allocator: *Allocator, 
-            xs: []T, 
-            ys: []T
+            xs: []const T, 
+            ys: []const T
         ) []T {
             const n = xs.len + ys.len;
             var out = allocator.alloc(T, n) catch unreachable; //FIXME
@@ -49,7 +49,7 @@ pub fn ArraySet(comptime T: type) type {
             defer allocator.free(tmp);
 
             mem.copy(T, tmp[0..xs.len], xs);
-            mem.copy(T, tmp[ys.len..], ys);
+            mem.copy(T, tmp[xs.len..], ys);
 
             sort(T, tmp[0..], T.less_than);
 
@@ -58,7 +58,7 @@ pub fn ArraySet(comptime T: type) type {
 
             while (i < n - 1) {
                 if (!tmp[i].eq(tmp[i + 1])) {
-                    out[j] = tmp[i];
+                    out[j] = tmp[i].clone();
                     j += 1;
                 }
                 i += 1;
@@ -83,7 +83,7 @@ pub fn ArraySet(comptime T: type) type {
         }
 
         //FIXME consistent naming
-        pub fn is_subset(xs: []T, ys: []T) bool {
+        pub fn is_subset(xs: []const T, ys: []const T) bool {
             var i: usize = 0;
 
             if (xs.len > ys.len) { return false; }
